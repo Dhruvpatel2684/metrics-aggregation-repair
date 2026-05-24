@@ -40,7 +40,9 @@ The runtime environment already contains the required system-wide Python tooling
 - `/app/runtime/export.py` — snapshot export with integrity checksum
 - `/app/runtime/config/aggregator.ini` — aggregation interval, staleness threshold, cardinality settings
 - `/app/runtime/collectors/` — raw metric samples from distributed sources
-- `/app/runtime/output/` — exported snapshot artifacts
+- `/app/runtime/output/metrics_snapshot.jsonl` — exported aggregated metrics snapshot
+- `/app/runtime/output/snapshot_integrity.json` — export integrity metadata
+- `/app/solution/repair_aggregator.py` — aggregation state repair script
 
 ## Metric Types
 
@@ -59,3 +61,41 @@ The runtime environment already contains the required system-wide Python tooling
 ## Series Identity
 
 A metric series is uniquely identified by: metric name + full label set + collector. Series from the same collector with different label values (e.g. `status=200` vs `status=500`) must remain distinct and not be merged together.
+
+## Output Schema: metrics_snapshot.jsonl
+
+Each line is a JSON object representing one aggregated series. The `type` field determines the record structure:
+
+**Counter records:**
+- `type` (string) — always `"counter"`
+- `metric` (string) — metric name
+- `labels` (object) — full label key-value pairs
+- `collector` (string) — source collector identifier
+- `total_delta` (number) — cumulative delta across all intervals (must be non-negative)
+- `intervals` (integer) — number of intervals contributing to the delta
+
+**Histogram records:**
+- `type` (string) — always `"histogram"`
+- `metric` (string) — metric name
+- `labels` (object) — full label key-value pairs
+- `collector` (string) — source collector identifier
+- `buckets` (object) — boundary-to-count mapping (e.g. `{"0.01": 80, "0.025": 210, ..., "+Inf": 700}`)
+- `total_count` (integer) — total observation count (must equal `+Inf` bucket)
+- `total_sum` (number) — sum of all observed values
+
+**Gauge records:**
+- `type` (string) — always `"gauge"`
+- `metric` (string) — metric name
+- `labels` (object) — full label key-value pairs
+- `collector` (string) — source collector identifier
+- `value` (number) — most recent gauge value
+- `last_seen` (string) — ISO-8601 UTC timestamp of the most recent sample, aligned to 15-second boundary
+
+## Output Schema: snapshot_integrity.json
+
+- `sha256` (string) — SHA-256 digest over concatenated JSONL lines
+- `record_count` (integer) — total records in the snapshot
+- `counter_series` (integer) — number of counter series
+- `histogram_series` (integer) — number of histogram series
+- `gauge_series` (integer) — number of gauge series
+- `exported_at` (string) — UTC timestamp of export
