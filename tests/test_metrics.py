@@ -44,8 +44,10 @@ def test_counter_reset_detection():
                 and c["metric"] == "http_requests_total"]
     assert len(east_get) == 1, f"expected exactly one east-1 GET/200 counter series, found {len(east_get)}"
 
-    assert east_get[0]["total_delta"] > 0, (
-        f"east-1 GET/200 counter has delta {east_get[0]['total_delta']} — reset not detected"
+    # value sequence: 14823→14891→14950→42→105
+    # correct deltas: 68 + 59 + 42(reset) + 63 = 232
+    assert east_get[0]["total_delta"] == 232, (
+        f"east-1 GET/200 counter has delta {east_get[0]['total_delta']}, expected 232"
     )
 
 
@@ -167,6 +169,19 @@ def test_gauge_staleness_eviction():
             stale.append((g["metric"], g["labels"].get("instance"), age))
 
     assert len(stale) == 0, f"{len(stale)} stale gauges not evicted: {stale[:3]}"
+
+
+def test_histogram_sum_accuracy():
+    """Histogram total_sum must exactly match the sum of raw sample sum fields."""
+    records = load_snapshot()
+    histograms = [r for r in records if r["type"] == "histogram"]
+
+    # east-1 api-gateway histogram: 3 samples with sum 187.4 + 195.2 + 203.8 = 586.4
+    east_hist = [h for h in histograms if h["collector"] == "east-1"]
+    assert len(east_hist) == 1, f"expected 1 east-1 histogram, found {len(east_hist)}"
+    assert abs(east_hist[0]["total_sum"] - 586.4) < 0.01, (
+        f"east-1 histogram total_sum is {east_hist[0]['total_sum']}, expected 586.4"
+    )
 
 
 def test_counter_series_count():
