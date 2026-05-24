@@ -2,10 +2,30 @@ import json
 import os
 import glob
 import logging
+import copy
 
 logger = logging.getLogger("metrics.ingest")
 
 COLLECTORS_DIR = os.path.join(os.path.dirname(__file__), "collectors")
+
+
+def normalize_sample(sample):
+    """Normalize a raw sample for aggregation processing."""
+    normalized = copy.deepcopy(sample)
+
+    # ensure labels is a dict
+    if "labels" not in normalized:
+        normalized["labels"] = {}
+
+    # normalize label values to strings
+    labels = normalized["labels"]
+    normalized["labels"] = {k: str(v) for k, v in labels.items()}
+
+    # inject collector into labels for downstream tracking
+    if "collector" in normalized:
+        normalized["labels"]["__collector"] = normalized["collector"]
+
+    return normalized
 
 
 def load_samples():
@@ -24,6 +44,7 @@ def load_samples():
                 if not line:
                     continue
                 sample = json.loads(line)
+                sample = normalize_sample(sample)
                 samples.append(sample)
 
     logger.info("loaded %d samples from %d collectors", len(samples), len(files))

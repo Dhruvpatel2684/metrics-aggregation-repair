@@ -38,15 +38,12 @@ def test_counter_reset_detection():
     records = load_snapshot()
     counters = [r for r in records if r["type"] == "counter"]
 
-    # find the east-1 api-gateway GET/200 counter (known to have a reset in data)
     east_get = [c for c in counters if c["collector"] == "east-1"
                 and c["labels"].get("method") == "GET"
                 and c["labels"].get("status") == "200"
                 and c["metric"] == "http_requests_total"]
-    assert len(east_get) == 1, "expected exactly one east-1 GET/200 counter series"
+    assert len(east_get) == 1, f"expected exactly one east-1 GET/200 counter series, found {len(east_get)}"
 
-    # value goes 14823→14891→14950→42→105: reset at 42, correct delta = 68+59+42+63 = 232
-    # with broken reset detection: delta = 68+59+(-14908)+63 = -14718
     assert east_get[0]["total_delta"] > 0, (
         f"east-1 GET/200 counter has delta {east_get[0]['total_delta']} — reset not detected"
     )
@@ -91,19 +88,19 @@ def test_histogram_inf_equals_count():
 
 
 def test_no_high_cardinality_labels():
-    """No series in output should contain high-cardinality labels like request_id."""
+    """No series in output should contain high-cardinality or internal labels."""
     records = load_snapshot()
-    high_card_labels = {"request_id", "trace_id", "span_id"}
+    forbidden_labels = {"request_id", "trace_id", "span_id", "__collector"}
 
     violations = []
     for r in records:
         labels = r.get("labels", {})
-        found = high_card_labels & set(labels.keys())
+        found = forbidden_labels & set(labels.keys())
         if found:
             violations.append((r["metric"], found))
 
     assert len(violations) == 0, (
-        f"{len(violations)} series with high-cardinality labels: {violations[:3]}"
+        f"{len(violations)} series with forbidden labels: {violations[:3]}"
     )
 
 
@@ -112,7 +109,6 @@ def test_series_label_differentiation():
     records = load_snapshot()
     counters = [r for r in records if r["type"] == "counter"]
 
-    # group by metric+collector, check that different label combinations are distinct
     series_keys = []
     for c in counters:
         key = (c["metric"], c["collector"], json.dumps(c["labels"], sort_keys=True))
@@ -121,7 +117,6 @@ def test_series_label_differentiation():
     duplicates = [k for k, v in Counter(series_keys).items() if v > 1]
     assert len(duplicates) == 0, f"duplicate series keys found: {duplicates[:3]}"
 
-    # specifically verify that east-1 has separate GET/200 and POST/201 series
     east_counters = [c for c in counters if c["collector"] == "east-1"
                      and c["metric"] == "http_requests_total"]
     assert len(east_counters) >= 2, (

@@ -58,7 +58,6 @@ def compute_counter_deltas(series_data):
             delta = point["value"] - prev_value
             if delta < 0:
                 # on reset, use the raw negative difference
-                # (should use current value as delta after reset)
                 pass
             deltas.append({
                 "timestamp": point["aligned_ts"],
@@ -116,7 +115,6 @@ def aggregate_samples(samples, config):
     }
 
     for key, points in series.items():
-        # mixed types in same series due to key collision — use first sample's type
         metric_type = points[0]["type"]
 
         if metric_type == "counter":
