@@ -2,31 +2,17 @@
 
 ## Situation
 
-A metrics aggregation runtime collects raw metric samples from distributed collectors, computes time-series aggregates (counters, histograms, gauges), and produces a consolidated metrics snapshot for downstream alerting systems. The aggregator processes JSONL collector feeds, aligns timestamps to fixed intervals, groups samples into series, and exports the final aggregated state.
+A metrics aggregation runtime collects raw metric samples from distributed collectors, computes time-series aggregates (counters, histograms, gauges), and produces a consolidated metrics snapshot. The aggregator processes JSONL collector feeds, aligns timestamps to fixed intervals, groups samples into series, and exports the final aggregated state.
 
-After a routine deployment, the exported snapshot exhibits several anomalies in the aggregated metrics.
+After a routine deployment, the exported snapshot exhibits several anomalies.
 
 ## Observed Symptoms
 
-Running `python3 /app/runtime/run_aggregator.py` produces a snapshot that:
-
-1. Contains counter series with negative total_delta values — a counter that experienced a process restart shows a large negative rate instead of detecting the reset and computing a positive delta
-2. Histogram bucket counts that exceed `total_count` — events at bucket boundaries are being counted in adjacent buckets, inflating the upper bucket values beyond the actual sample count
-3. Counter series from the same collector with different label sets (e.g. different HTTP status codes) are being merged into a single series instead of remaining distinct — the series grouping key does not incorporate all label dimensions
-4. Gauge timestamps that do not align to the expected 15-second aggregation boundaries
-5. High-cardinality labels like `request_id` are not being filtered despite configuration specifying them as high-cardinality
+Running `python3 /app/runtime/run_aggregator.py` produces output that does not match expected aggregation behavior. The snapshot contains incorrect counter rates, inconsistent histogram totals, fewer series than expected, misaligned timestamps, and retains data that should have been filtered or evicted.
 
 ## Expected Behavior
 
-After repair, the runtime must produce:
-
-- All counter total_delta values must be non-negative (resets detected and handled)
-- Histogram +Inf bucket must equal total_count for each series
-- Histogram bucket counts must be monotonically non-decreasing across boundaries
-- Counter series with different label combinations must remain separate
-- Gauge timestamps must align to 15-second boundaries
-- No series in the output should contain high-cardinality labels
-- Stale gauges (older than staleness threshold) must be evicted
+After repair, the aggregation output must satisfy standard observability invariants for all metric types.
 
 ## Environment
 
@@ -35,7 +21,7 @@ The runtime environment already contains the required system-wide Python tooling
 ## Key Files
 
 - `/app/runtime/run_aggregator.py` — orchestration entrypoint
-- `/app/runtime/aggregate.py` — core aggregation logic (timestamp alignment, series keying, counter deltas, histogram merging, staleness eviction)
+- `/app/runtime/aggregate.py` — core aggregation logic
 - `/app/runtime/ingest.py` — JSONL collector feed loading
 - `/app/runtime/export.py` — snapshot export with integrity checksum
 - `/app/runtime/config/aggregator.ini` — aggregation interval, staleness threshold, cardinality settings
