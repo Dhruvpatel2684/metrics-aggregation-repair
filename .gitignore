@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+environment/runtime/output/connection_state.jsonl
+environment/runtime/output/recovery_report.json

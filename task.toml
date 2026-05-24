@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "networking"
+difficulty = "hard"
+tags = ["tcp", "state-machine", "connection-pool", "networking", "protocol"]
+
+difficulty_explanation = "The TCP state recovery runtime contains five interacting defects across state machine timeout logic, pool slot release conditions, event sequence validation, handler re-allocation guards, and duplicate ACK transition semantics. Bugs interact causally: fixing one in isolation either has no effect or worsens another, requiring simultaneous understanding of state machine semantics, pool lifecycle invariants, and event processing ordering."
+
+solution_explanation = "The repair re-processes gateway events with correct strict-greater-than sequence validation, TIME_WAIT timeout using time_wait_duration instead of connection_timeout, pool slot release restricted to CLOSED state only, SYN_RECV handler guarded against duplicate pool allocation, and duplicate ACK in ESTABLISHED treated as a no-op without recording a transition."
+
+verification_explanation = "Tests validate pool slot history never goes negative, TIME_WAIT duration respects 30-second minimum, no duplicate connection IDs, no forced evictions, all transitions are valid TCP state pairs, pool active_count matches non-CLOSED connections, connections with teardown events reach CLOSED, no self-transitions or timestamp regressions, and all releases occur only at CLOSED state."
+
+expert_time_estimate_hours = 2.5
+
+[task]
+name = "connection-state-recovery"
+description = "TCP connection state recovery runtime producing incorrect lifecycle states due to timeout field confusion, premature pool release, duplicate event processing, unguarded re-allocation, and phantom transition recording"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Requires understanding TCP state machine transition semantics, connection pool lifecycle invariants, event sequence deduplication semantics, and the causal interactions between timeout configuration, slot release timing, duplicate processing, and forced eviction thresholds"
+
+[task.runtime]
+entrypoint = "python3 runtime/run_recovery.py"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Behavioral validation of connection lifecycle correctness, pool accounting invariants, and state transition validity"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Re-processes gateway events with corrected sequence validation, timeout comparison, release conditions, allocation guards, and duplicate ACK handling"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"
