@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "networking"
+difficulty = "hard"
+tags = ["tcp", "state-machine", "connection-pool", "networking", "protocol", "reconciliation"]
+
+difficulty_explanation = "Six interacting defects across eight source files spanning timestamp normalization, pool slot lifecycle, state machine direction semantics, reconciliation logic, and batch processing accumulation. Each bug is embedded in correct-looking code, and fixing one in isolation either has no effect or causes a different test to fail due to cascading dependencies between the sequencer, handlers, reconciler, and pool."
+
+solution_explanation = "The repair corrects: (1) gateway_delta epoch offset from milliseconds to seconds, (2) stale reservation sweep to use reserved_at with protocol-derived timeout of 30s, (3) FIN_RECV direction flag from local to remote in the transition dispatch, (4) reconciliation timestamp comparison from string to parsed datetime, (5) batch transition counter from SUM to per-connection actual count."
+
+verification_explanation = "Tests validate pool slot accounting matches non-CLOSED connections, both half-close directions appear in output, all reservations resolve, transition counts stay within bounds, export hash integrity, connection ID format, lifecycle completion, temporal monotonicity, and no negative pool counts."
+
+expert_time_estimate_hours = 3.0
+
+[task]
+name = "connection-state-recovery"
+description = "TCP connection state recovery pipeline producing incorrect lifecycle states due to interacting defects in timestamp normalization, pool reservation management, state transition direction handling, reconciliation logic, and batch counter accumulation"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Requires understanding multi-phase pipeline data flow, TCP half-close semantics, two-phase pool slot lifecycle, timestamp normalization across sources, and batch processing accumulation — with bugs that cascade across module boundaries"
+
+[task.runtime]
+entrypoint = "python3 runtime/run_recovery.py"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Behavioral validation of connection lifecycle, pool accounting, and reconciliation integrity"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Re-processes events with corrected normalization, direction handling, reservation management, and counter logic"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"

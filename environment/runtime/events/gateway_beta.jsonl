@@ -1,0 +1,15 @@
+{"seq": 1, "timestamp": "2024-03-15T10:00:10.000Z", "source": "gateway_beta", "conn_id": "conn_004", "event_type": "PASSIVE_OPEN", "source_addr": "172.16.0.5:50000", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 2, "timestamp": "2024-03-15T10:00:11.000Z", "source": "gateway_beta", "conn_id": "conn_004", "event_type": "SYN_RECV", "source_addr": "172.16.0.5:50000", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 3, "timestamp": "2024-03-15T10:00:14.000Z", "source": "gateway_beta", "conn_id": "conn_004", "event_type": "SYN_RECV", "source_addr": "172.16.0.5:50000", "dest_addr": "10.0.0.2:443", "payload": {"retransmit": true}}
+{"seq": 4, "timestamp": "2024-03-15T10:00:15.000Z", "source": "gateway_beta", "conn_id": "conn_004", "event_type": "ACK_RECV", "source_addr": "172.16.0.5:50000", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 5, "timestamp": "2024-03-15T10:00:40.000Z", "source": "gateway_beta", "conn_id": "conn_004", "event_type": "FIN_RECV", "source_addr": "172.16.0.5:50000", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 6, "timestamp": "2024-03-15T10:00:41.000Z", "source": "gateway_beta", "conn_id": "conn_004", "event_type": "CLOSE", "source_addr": "172.16.0.5:50000", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 7, "timestamp": "2024-03-15T10:01:15.000Z", "source": "gateway_beta", "conn_id": "conn_004", "event_type": "TIMEOUT", "source_addr": "172.16.0.5:50000", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 8, "timestamp": "2024-03-15T10:01:00.000Z", "source": "gateway_beta", "conn_id": "conn_005", "event_type": "PASSIVE_OPEN", "source_addr": "172.16.0.10:50100", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 9, "timestamp": "2024-03-15T10:01:01.000Z", "source": "gateway_beta", "conn_id": "conn_005", "event_type": "SYN_RECV", "source_addr": "172.16.0.10:50100", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 10, "timestamp": "2024-03-15T10:01:04.000Z", "source": "gateway_beta", "conn_id": "conn_005", "event_type": "SYN_RECV", "source_addr": "172.16.0.10:50100", "dest_addr": "10.0.0.2:443", "payload": {"retransmit": true}}
+{"seq": 11, "timestamp": "2024-03-15T10:01:07.000Z", "source": "gateway_beta", "conn_id": "conn_005", "event_type": "SYN_RECV", "source_addr": "172.16.0.10:50100", "dest_addr": "10.0.0.2:443", "payload": {"retransmit": true}}
+{"seq": 12, "timestamp": "2024-03-15T10:01:20.000Z", "source": "gateway_beta", "conn_id": "conn_005", "event_type": "ACK_RECV", "source_addr": "172.16.0.10:50100", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 13, "timestamp": "2024-03-15T10:02:00.000Z", "source": "gateway_beta", "conn_id": "conn_005", "event_type": "CLOSE", "source_addr": "172.16.0.10:50100", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 14, "timestamp": "2024-03-15T10:02:01.000Z", "source": "gateway_beta", "conn_id": "conn_005", "event_type": "FIN_RECV", "source_addr": "172.16.0.10:50100", "dest_addr": "10.0.0.2:443", "payload": {}}
+{"seq": 15, "timestamp": "2024-03-15T10:02:35.000Z", "source": "gateway_beta", "conn_id": "conn_005", "event_type": "TIMEOUT", "source_addr": "172.16.0.10:50100", "dest_addr": "10.0.0.2:443", "payload": {}}
