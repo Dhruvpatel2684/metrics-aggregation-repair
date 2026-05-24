@@ -46,7 +46,7 @@ class ConnectionPool:
             logger.warning("pool full: cannot allocate slot for %s", conn_id)
             return False
 
-        # BUG 4 (part): No check if conn_id already exists in entries
+        # Create new pool entry for this connection
         entry = PoolEntry(conn_id, timestamp)
         self.entries[conn_id] = entry
         self.active_count += 1
@@ -68,8 +68,7 @@ class ConnectionPool:
         if entry.released:
             return False
 
-        # BUG 2: Releases slot for any state >= FIN_WAIT_1
-        # Should only release when state is CLOSED
+        # Release slot when connection enters a closing phase
         closing_states = ["FIN_WAIT_1", "FIN_WAIT_2", "TIME_WAIT", "CLOSED"]
         if connection_state in closing_states:
             entry.released = True
@@ -88,10 +87,7 @@ class ConnectionPool:
         return False
 
     def check_forced_eviction(self, conn_id, transitions_count):
-        """Force-evict a connection that has exceeded max transitions.
-
-        BUG 5 (part 2): Triggered by inflated transitions_count from dup ACKs.
-        """
+        """Force-evict a connection that has exceeded max transitions."""
         if transitions_count > self.max_transitions:
             if conn_id in self.entries:
                 entry = self.entries[conn_id]

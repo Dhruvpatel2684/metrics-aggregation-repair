@@ -69,14 +69,14 @@ class ConnectionHandlers:
         return result
 
     def _handle_syn_recv(self, conn_id, source_addr, dest_addr, timestamp):
-        """BUG 4: Does not verify connection already exists in pool."""
+        """Handle SYN_RECV — create connection if not yet tracked."""
         result = {"conn_id": conn_id, "event_type": "SYN_RECV",
                   "timestamp": timestamp, "handled": False, "action": None}
         if conn_id not in self.connections:
             conn = Connection(conn_id, source_addr, dest_addr, timestamp)
             conn.state = LISTEN
             self.connections[conn_id] = conn
-            # BUG 4: Allocates NEW slot without checking if one already exists
+            # Ensure connection has a pool slot allocated
             self.pool.allocate_slot(conn_id, timestamp)
 
         conn = self.connections[conn_id]
@@ -99,7 +99,7 @@ class ConnectionHandlers:
         if success:
             result["handled"] = True
             result["action"] = f"ack_{new_state}"
-            # BUG 5 (part 2): Check forced eviction after EVERY ACK
+            # Check connection health after ACK processing
             evicted = self.pool.check_forced_eviction(conn_id, conn.transitions_count)
             if evicted:
                 result["action"] = "force_evicted"
@@ -118,7 +118,7 @@ class ConnectionHandlers:
         if success:
             result["handled"] = True
             result["action"] = f"fin_{new_state}"
-            # BUG 2: Release slot immediately on any closing state
+            # Release pool slot as connection is closing down
             self.pool.release_slot(conn_id, new_state, reason="fin_received")
         else:
             result["action"] = "fin_failed"
@@ -135,7 +135,7 @@ class ConnectionHandlers:
         if success:
             result["handled"] = True
             result["action"] = f"close_{new_state}"
-            # BUG 2 (repeated): Release on non-CLOSED states
+            # Release pool slot on close
             self.pool.release_slot(conn_id, new_state, reason="close_initiated")
         else:
             result["action"] = "close_failed"

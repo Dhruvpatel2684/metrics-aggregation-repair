@@ -88,8 +88,7 @@ class StateMachine:
         current = connection.get_state()
         key = (current, event)
 
-        # BUG 5 (part 1): Allow ESTABLISHED -> ESTABLISHED on duplicate ACK
-        # Should be a no-op but we process it as a real transition
+        # Handle duplicate ACK while connection is active — record for diagnostics
         if current == ESTABLISHED and event == "ACK_RECV":
             connection.record_transition(ESTABLISHED, ESTABLISHED, event, timestamp)
             logger.debug("conn %s: duplicate ACK in ESTABLISHED (recorded)", connection.conn_id)
@@ -114,7 +113,7 @@ class StateMachine:
                 event_dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
                 elapsed = (event_dt - entered_dt).total_seconds()
 
-                # BUG 1: Uses connection_timeout (120s) instead of time_wait_duration (30s)
+                # Ensure connection has resided in TIME_WAIT long enough
                 if elapsed < self.connection_timeout:
                     logger.debug("conn %s: TIME_WAIT timeout not reached (%.1fs < %ds)",
                                  connection.conn_id, elapsed, self.connection_timeout)
@@ -140,7 +139,7 @@ class StateMachine:
         current_dt = datetime.fromisoformat(current_time.replace("Z", "+00:00"))
         elapsed = (current_dt - entered_dt).total_seconds()
 
-        # BUG 1 (repeated): same wrong timeout field used here
+        # Check elapsed time against configured timeout threshold
         if elapsed >= self.connection_timeout:
             return True
         return False

@@ -63,8 +63,7 @@ class EventProcessor:
 
         last_seq = self.last_sequence[source]
 
-        # BUG 3: Uses >= instead of > for sequence validation
-        # When seq == last_seq, this returns True (should be False)
+        # Accept events with sequence numbers at or above last processed
         if seq >= last_seq:
             self.last_sequence[source] = seq
             return True
