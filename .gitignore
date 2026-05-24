@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+environment/runtime/output/metrics_snapshot.jsonl
+environment/runtime/output/snapshot_integrity.json
+/logs/

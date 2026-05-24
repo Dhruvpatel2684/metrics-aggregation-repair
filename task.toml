@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "observability"
+difficulty = "hard"
+tags = ["observability", "metrics", "monitoring", "time-series", "aggregation"]
+
+difficulty_explanation = "The metrics aggregation runtime contains multiple interacting defects across counter reset detection, histogram bucket boundary semantics, timestamp alignment arithmetic, series merge key construction, staleness eviction field confusion, and cardinality filtering. Repair requires understanding Prometheus-style metric semantics and time-series aggregation invariants."
+
+solution_explanation = "The repair re-processes raw collector samples with correct counter reset detection (positive delta on decrease), strict histogram bucket summation (no double-counting), proper timestamp alignment (seconds to milliseconds conversion), full label dimensions in series keys, staleness based on sample timestamps, and high-cardinality label filtering."
+
+verification_explanation = "Tests validate counter delta positivity, reset detection correctness, histogram bucket monotonicity, +Inf consistency, cardinality filtering, series label differentiation, timestamp alignment to 15-second boundaries, gauge staleness eviction, expected series counts, and export integrity metadata."
+
+expert_time_estimate_hours = 2.0
+
+[task]
+name = "metrics-aggregation-repair"
+description = "Metrics aggregation runtime producing corrupted snapshots due to counter reset misdetection, histogram bucket overflow, timestamp alignment drift, series merge collision, and staleness eviction failure"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Requires understanding of counter reset semantics, histogram bucket monotonicity invariants, timestamp alignment arithmetic, series key construction with full label dimensions, and staleness eviction based on correct timestamp fields"
+
+[task.runtime]
+entrypoint = "python3 runtime/run_aggregator.py"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Behavioral validation of metric aggregation correctness across counter, histogram, and gauge types"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Re-aggregates from raw collector samples with correct reset detection, bucket boundaries, alignment, merge keys, staleness, and cardinality filtering"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"
