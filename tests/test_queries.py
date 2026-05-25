@@ -108,6 +108,30 @@ class TestQueryThree:
             f"Expected 14 rows from join query, got {result['row_count']}"
         )
 
+    def test_q3_result_order(self):
+        """q3 results should be ordered by salary DESC with stable tie-breaking.
+
+        When rows have identical ORDER BY values, the engine must preserve
+        their original table insertion order (global row position across all
+        partitions). Carol (row 3) should appear before Kate (row 11) and
+        Tina (row 20) since all three have salary=92000.
+
+        The sorter must use the global_row_index (assigned during table scan)
+        not the partition-local row_index for tie-breaking.
+        """
+        result = load_result("q3")
+        rows = result["rows"]
+
+        salary_92k_rows = [r for r in rows if r[2] == 92000]
+        assert len(salary_92k_rows) == 3, f"Expected 3 rows with salary 92000"
+
+        names_92k = [r[0] for r in salary_92k_rows]
+        assert names_92k == ["Carol", "Kate", "Tina"], (
+            f"Salary 92000 tie-breaking order should be Carol, Kate, Tina "
+            f"(by global table row position: row 3, row 11, row 20), "
+            f"got {names_92k}. Check sorter.py tiebreaker key."
+        )
+
 
 class TestQueryFour:
     """Tests for q4: aggregate SUM with partition boundary."""

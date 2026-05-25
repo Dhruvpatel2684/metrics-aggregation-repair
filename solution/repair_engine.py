@@ -62,8 +62,18 @@ def fix_aggregator():
 
 
 def fix_sorter():
-    """Sorter module has no critical defects for current test coverage."""
-    pass
+    """Fix sort tiebreaker to use global row position across partitions."""
+    path = "/app/runtime/sorter.py"
+    with open(path, "r") as f:
+        content = f.read()
+
+    content = content.replace(
+        '            key_parts.append(item["row_index"])',
+        '            key_parts.append((item.get("partition_idx", 0), item["row_index"]))'
+    )
+
+    with open(path, "w") as f:
+        f.write(content)
 
 
 if __name__ == "__main__":

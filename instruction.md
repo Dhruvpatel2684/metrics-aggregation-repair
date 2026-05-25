@@ -65,7 +65,7 @@ The engine configuration in `/app/runtime/config/engine.ini` controls:
 2. **Planning**: The optimizer selects join methods and builds execution stages
 3. **Execution**: Queries run partition-by-partition for memory efficiency
 4. **Aggregation**: GROUP BY results are merged across partition boundaries
-5. **Sorting**: Final results are ordered according to ORDER BY specifications
+5. **Sorting**: Final results are ordered according to ORDER BY specifications; tied values must maintain original table row position as stable tiebreaker
 6. **Export**: Results and statistics are written as JSON files
 
 ## Output Schema
