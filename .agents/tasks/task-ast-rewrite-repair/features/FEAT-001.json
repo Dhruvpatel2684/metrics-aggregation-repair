@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "feat",
   "description": "Create the complete AST-rewrite-repair Harbor Terminal-Bench task from scratch, including all source modules with embedded bugs, config files, data files, tests, repair script, Dockerfile, instruction.md, and task.toml.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Step 1: Create environment/Dockerfile with python:3.11-slim base, pip install uv, COPY runtime/ /app/runtime/, WORKDIR /app",
     "Step 2: Create environment/runtime/__init__.py (empty)",
@@ -49,5 +49,5 @@
     "grep for 'system-wide' in instruction.md - found"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Verified: Buggy state produces valid output (never crashes), 4 easy tests pass and 6 fail. After repair script: all 10 tests pass. Bug E (cached scope depth) confirmed invisible until Bug B is fixed. Bug D changed from (line, priority) vs (line, rule_name, priority) to (priority, line) vs (line, rule_name, priority) for more visible ordering difference. Bug C affects gamma symbols_resolved (10 buggy vs 12 fixed) due to shared variable names counter and y between alpha and gamma."
 }
