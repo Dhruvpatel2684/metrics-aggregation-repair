@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+environment/runtime/output/coverage_report.json
+environment/runtime/output/indexed_features.json
+*.egg-info/
+.venv/

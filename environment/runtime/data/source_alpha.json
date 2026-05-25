@@ -1,0 +1,51 @@
+{
+  "type": "FeatureCollection",
+  "source_id": "alpha",
+  "features": [
+    {
+      "id": "poi_10001_a",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.8, 44.8]
+      },
+      "properties": {"name": "Station Alpha-1", "category": "transport"}
+    },
+    {
+      "id": "poi_10002_a",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.2, 45.3]
+      },
+      "properties": {"name": "Station Alpha-2", "category": "transport"}
+    },
+    {
+      "id": "poi_10003_a",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.3, 45.4]
+      },
+      "properties": {"name": "Station Alpha-3", "category": "commercial"}
+    },
+    {
+      "id": "poi_10004_a",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.4, 45.5]
+      },
+      "properties": {"name": "Station Alpha-4", "category": "commercial"}
+    },
+    {
+      "id": "poi_10005_a",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.6, 45.6]
+      },
+      "properties": {"name": "Station Alpha-5", "category": "residential"}
+    }
+  ]
+}

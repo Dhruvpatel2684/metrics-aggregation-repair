@@ -1,0 +1,50 @@
+{
+  "type": "FeatureCollection",
+  "source_id": "gamma",
+  "features": [
+    {
+      "id": "gamma_poi_20001",
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [10.4, 45.4], [10.6, 45.4], [10.6, 45.6], [10.4, 45.6], [10.4, 45.4]
+        ]]
+      },
+      "properties": {"name": "Park Gamma-1", "category": "recreation"}
+    },
+    {
+      "id": "gamma_poi_20002",
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [10.3, 45.3], [10.5, 45.3], [10.5, 45.5], [10.3, 45.5], [10.3, 45.3]
+        ]]
+      },
+      "properties": {"name": "Park Gamma-2", "category": "recreation"}
+    },
+    {
+      "id": "gamma_poi_20003",
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [10.6, 45.6], [10.8, 45.6], [10.8, 45.8], [10.6, 45.8], [10.6, 45.6]
+        ]]
+      },
+      "properties": {"name": "Park Gamma-3", "category": "nature"}
+    },
+    {
+      "id": "gamma_poi_20004",
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [11.2, 46.2], [11.4, 46.2], [11.4, 46.4], [11.2, 46.4], [11.2, 46.2]
+        ]]
+      },
+      "properties": {"name": "Park Gamma-4", "category": "nature"}
+    }
+  ]
+}

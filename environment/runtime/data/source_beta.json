@@ -1,0 +1,51 @@
+{
+  "type": "FeatureCollection",
+  "source_id": "beta",
+  "features": [
+    {
+      "id": "poi_10001_b",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.15, 45.25]
+      },
+      "properties": {"name": "Hub Beta-1", "category": "transport"}
+    },
+    {
+      "id": "poi_10003_b",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.35, 45.45]
+      },
+      "properties": {"name": "Hub Beta-3", "category": "commercial"}
+    },
+    {
+      "id": "poi_10006_b",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.5, 45.5]
+      },
+      "properties": {"name": "Hub Beta-6", "category": "civic"}
+    },
+    {
+      "id": "poi_10007_b",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.7, 45.7]
+      },
+      "properties": {"name": "Hub Beta-7", "category": "civic"}
+    },
+    {
+      "id": "poi_10008_b",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.8, 45.8]
+      },
+      "properties": {"name": "Hub Beta-8", "category": "residential"}
+    }
+  ]
+}

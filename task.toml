@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "geospatial"
+difficulty = "hard"
+tags = ["spatial-indexing", "r-tree", "geojson", "computational-geometry", "python"]
+
+difficulty_explanation = "Four semantically-embedded bugs across geometry processing, feature deduplication, query configuration, and export integrity. Bug B (dedup key extraction) only manifests for one data source's ID format. Bug C (config key mismatch with silent fallback) requires tracing the config read path. Fixing Bug C alone unmasks Bug A (coordinate swap) since the enlarged query radius previously masked the spatial error."
+
+solution_explanation = "Patches: (1) geometry.py polygon bounds coordinate order from (lat,lon) to (lon,lat), (2) ingest.py dedup key extraction to find numeric segment regardless of prefix count, (3) query_engine.py config key from search_radius_km to search_radius_degrees, (4) export.py total_features uses actual output count and hash computed over sorted records."
+
+verification_explanation = "Tests validate output file existence, feature count consistency, all sources represented, bounded query results (5-12), gamma features present (>=2), no duplicates, valid bounds (min<=max), and integrity hash recomputation from sorted output."
+
+expert_time_estimate_hours = 2.5
+
+[task]
+name = "spatial-index-repair"
+description = "Debug a spatial indexing system that ingests geographic features, builds an R-tree index, and produces coverage reports with integrity verification"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Bugs interact across modules — fixing the query radius unmasks the coordinate swap bug. Config fallback silently hides the wrong key. Dedup bug only affects one source's ID format."
+
+[task.runtime]
+entrypoint = "python3 -m runtime.run_indexer"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Validates feature counts, source coverage, spatial bounds, deduplication, and hash integrity"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Patches 4 defects across geometry, ingest, query engine, and export modules"
+
+[task.resources]
+timeout = 1800
+cpu = 2
+memory = "2GB"
+disk = "1GB"
