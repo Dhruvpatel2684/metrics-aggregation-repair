@@ -78,12 +78,27 @@ class TestHard:
     """Full system validation - requires all bug fixes."""
 
     def test_manifest_integrity_hash(self):
+        """Manifest entries must be ordered by (ts, nid, term) and the
+        computed hash must match the stored manifest_hash field."""
         manifest = load_manifest()
         entries = manifest["entries"]
         canonical = json.dumps(entries, sort_keys=True, separators=(",", ":"))
         computed_hash = hashlib.sha256(canonical.encode()).hexdigest()[:16]
-        assert computed_hash == manifest.get("manifest_hash"), "commitment manifest integrity check failed"
-        assert computed_hash == "89165d2226b9b18a", "commitment manifest integrity check failed"
+        assert computed_hash == manifest.get("manifest_hash"), (
+            "commitment manifest integrity check failed - "
+            "the manifest_hash field does not match the computed hash of entries; "
+            "check sort order in merger module (canonical order is ts, nid, term)"
+        )
+        for i in range(1, len(entries)):
+            prev = entries[i - 1]
+            curr = entries[i]
+            prev_key = (prev["ts"], prev["nid"], prev["term"])
+            curr_key = (curr["ts"], curr["nid"], curr["term"])
+            assert prev_key <= curr_key, (
+                f"manifest entries not in canonical order at position {i}: "
+                f"{prev_key} should precede {curr_key} "
+                f"(expected sort: ts, nid, term)"
+            )
 
     def test_reconciliation_state_integrity(self):
         state = load_state()

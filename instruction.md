@@ -14,7 +14,7 @@ The reconciliation engine operates across several coordinated modules located un
 
 - **Reconciler** (`/app/runtime/reconciler.py`): Implements two-phase reconciliation. Each reconciliation phase operates independently on its input window, processing heartbeat acknowledgment values into accumulated totals across configurable window sizes.
 
-- **Merger** (`/app/runtime/merger.py`): Produces deterministic merge ordering of log entries from multiple data streams. Canonical ordering ensures reproducible commitment manifests across runs.
+- **Merger** (`/app/runtime/merger.py`): Produces deterministic merge ordering of log entries from multiple data streams. Canonical ordering uses the composite key (timestamp, node identifier, term) to ensure reproducible commitment manifests across runs.
 
 - **Consensus** (`/app/runtime/consensus.py`): Validates quorum state using the voter count from the registry. The majority strategy determines the required quorum threshold for election validity.
 
