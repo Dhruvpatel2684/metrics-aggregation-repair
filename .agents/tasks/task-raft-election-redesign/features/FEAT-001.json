@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "feat",
   "description": "Complete rewrite of the raft-election-repair task with 5 interacting bugs, JSONL data, hash-based verification, and anti-Sonnet measures. This is a single massive feature because all files must be internally consistent - data, logic, bugs, tests, and expected values all interlock.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Step 1: Delete all existing source files in environment/runtime/ (keep __init__.py and config/__init__.py), delete existing data files, delete existing tests, solution, instruction.md, task.toml.",
     "Step 2: Create environment/runtime/config/cluster.ini with new structure containing: [cluster] section with cluster_id=raft-cluster-9, total_nodes=5, leader_node=node_alpha. [nodes] section with voter_aliases = alpha:node1,beta:node2,gamma:node3, delta:node4 (NOTE: deliberate space before delta). [epochs] section with boundary_threshold=5, max_epoch=8. [reconciliation] section with window_size=4, phases=propose,commit. [timing] section with election_timeout_ms=300, heartbeat_interval_ms=50 (this is a red herring). [timing.strict] section with election_timeout_ms=150, heartbeat_interval_ms=50 (also a red herring - NOT used in the new design). [quorum] section with strategy=majority, cache_ttl=0.",
@@ -49,5 +49,5 @@
     "Verify no source files contain BUG/FIXME/TODO/HACK"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Bug E redesigned to use independent config parsing with whitespace check (parts[0].strip() == parts[0]) rather than simple caching of registry call. This ensures Bug E persists independently even after Bug B is fixed. The epoch tracker bug uses lookahead comparison (>= vs >) to shift boundary records. Correct values: epoch5=15 records, active_voters=4, quorum_size=3, windows_processed=10, commit_acks=154, manifest_hash=89165d2226b9b18a, integrity_hash=14b9eb341ff855f5."
 }
