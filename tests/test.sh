@@ -4,8 +4,9 @@ set -euo pipefail
 mkdir -p /logs/verifier
 
 # Tests run the runtime directly via setup_module — no pre-run needed
+# pytest is installed system-wide via the Dockerfile
 set +e
-python3 -m pytest -v /tests/test_connections.py
+uv run --with pytest pytest -v /tests/test_connections.py
 TEST_EXIT=$?
 set -e
 

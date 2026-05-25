@@ -16,6 +16,10 @@ The recovery output currently shows:
 4. Connections from `gateway_delta` have timestamps approximately 25 minutes in the future relative to other gateways, causing the final TIME_WAIT sweep to incorrectly expire connections that should remain active
 5. The pool accounting (`active_count`) does not match the actual number of non-CLOSED connections in the output
 
+## Environment
+
+The runtime environment has Python 3 and `uv` available as global system-wide tooling. Tests are executed via `uv run --with pytest pytest`.
+
 ## Constraints
 
 - You must fix the existing runtime files under `/app/runtime/` — the tests import and execute these modules directly
