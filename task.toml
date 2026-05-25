@@ -1,0 +1,37 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "Distributed Consensus"
+difficulty = "hard"
+tags = ["raft", "consensus", "election", "distributed-systems", "log-replication"]
+
+difficulty_explanation = "Requires understanding Raft consensus protocol internals, config parsing edge cases, windowed aggregation semantics, and deterministic merge ordering across distributed nodes."
+solution_explanation = "Fix config parsing to strip whitespace from voter list, correct config section reference for election timeout, fix window accumulation to use last-write-wins, and add node_id to sort key for deterministic election event ordering."
+verification_explanation = "Tests validate cluster health report accuracy, committed entry manifest correctness, individual node vote counting, timeout calculations, window aggregation values, and merge ordering."
+expert_time_estimate_hours = 3.0
+
+[task]
+name = "raft-election-repair"
+description = "A Raft consensus election and log replication verification system that processes cluster node heartbeats, election events, and log entries to produce health reports and committed entry manifests."
+
+[task.difficulty]
+level = "hard"
+reasoning = "Four interacting bugs across config parsing, section references, windowed aggregation, and sort ordering require understanding of distributed consensus semantics."
+
+[task.runtime]
+entrypoint = "python3 -m runtime.run_election"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Runs the election verification system and validates output with pytest"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Patches the four bugs and re-runs the system to produce correct output"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"

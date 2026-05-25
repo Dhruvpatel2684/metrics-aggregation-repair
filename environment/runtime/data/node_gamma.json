@@ -1,0 +1,20 @@
+[
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:03.000Z", "term": 5, "ack_count": 3, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:06.000Z", "term": 5, "ack_count": 2, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:09.000Z", "term": 5, "ack_count": 4, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:12.000Z", "term": 5, "ack_count": 3, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:15.000Z", "term": 5, "ack_count": 2, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:18.000Z", "term": 5, "ack_count": 3, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:21.000Z", "term": 5, "ack_count": 4, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:24.000Z", "term": 5, "ack_count": 2, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:27.000Z", "term": 5, "ack_count": 3, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:30.000Z", "term": 5, "ack_count": 4, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:33.000Z", "term": 5, "ack_count": 2, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:36.000Z", "term": 5, "ack_count": 3, "leader_id": "node_alpha"},
+  {"type": "heartbeat", "node_id": "node_gamma", "timestamp": "2024-03-15T10:00:39.000Z", "term": 5, "ack_count": 4, "leader_id": "node_alpha"},
+  {"type": "election", "node_id": "node_gamma", "timestamp": "2024-03-15T10:01:31.000Z", "term": 6, "candidate": "node_alpha", "vote_granted": true, "voter_id": "node3"},
+  {"type": "election", "node_id": "node_gamma", "timestamp": "2024-03-15T10:01:31.000Z", "term": 6, "candidate": "node_alpha", "vote_granted": true, "voter_id": "node4"},
+  {"type": "log_entry", "node_id": "node_gamma", "timestamp": "2024-03-15T10:02:12.000Z", "term": 6, "index": 10, "operation": "SET m=7", "ack_count": 3},
+  {"type": "log_entry", "node_id": "node_gamma", "timestamp": "2024-03-15T10:02:22.000Z", "term": 6, "index": 11, "operation": "SET n=8", "ack_count": 4},
+  {"type": "log_entry", "node_id": "node_gamma", "timestamp": "2024-03-15T10:02:32.000Z", "term": 6, "index": 12, "operation": "DEL p", "ack_count": 3}
+]
