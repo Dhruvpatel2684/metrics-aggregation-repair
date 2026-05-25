@@ -1,0 +1,12 @@
+{"seq": 1, "timestamp": "2024-03-15T10:00:08.000Z", "source": "gateway_delta", "conn_id": "conn_008", "event_type": "PASSIVE_OPEN", "source_addr": "10.20.0.5:55000", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 2, "timestamp": "2024-03-15T10:00:09.000Z", "source": "gateway_delta", "conn_id": "conn_008", "event_type": "SYN_RECV", "source_addr": "10.20.0.5:55000", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 3, "timestamp": "2024-03-15T10:00:10.000Z", "source": "gateway_delta", "conn_id": "conn_008", "event_type": "ACK_RECV", "source_addr": "10.20.0.5:55000", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 4, "timestamp": "2024-03-15T10:00:30.000Z", "source": "gateway_delta", "conn_id": "conn_008", "event_type": "FIN_RECV", "source_addr": "10.20.0.5:55000", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 5, "timestamp": "2024-03-15T10:00:31.000Z", "source": "gateway_delta", "conn_id": "conn_008", "event_type": "CLOSE", "source_addr": "10.20.0.5:55000", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 6, "timestamp": "2024-03-15T10:01:05.000Z", "source": "gateway_delta", "conn_id": "conn_008", "event_type": "TIMEOUT", "source_addr": "10.20.0.5:55000", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 7, "timestamp": "2024-03-15T10:01:00.000Z", "source": "gateway_delta", "conn_id": "conn_009", "event_type": "PASSIVE_OPEN", "source_addr": "10.20.0.10:55100", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 8, "timestamp": "2024-03-15T10:01:01.000Z", "source": "gateway_delta", "conn_id": "conn_009", "event_type": "SYN_RECV", "source_addr": "10.20.0.10:55100", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 9, "timestamp": "2024-03-15T10:01:02.000Z", "source": "gateway_delta", "conn_id": "conn_009", "event_type": "ACK_RECV", "source_addr": "10.20.0.10:55100", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 10, "timestamp": "2024-03-15T10:01:40.000Z", "source": "gateway_delta", "conn_id": "conn_009", "event_type": "CLOSE", "source_addr": "10.20.0.10:55100", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 11, "timestamp": "2024-03-15T10:01:41.000Z", "source": "gateway_delta", "conn_id": "conn_009", "event_type": "FIN_RECV", "source_addr": "10.20.0.10:55100", "dest_addr": "10.0.0.4:3306", "payload": {}}
+{"seq": 12, "timestamp": "2024-03-15T10:02:15.000Z", "source": "gateway_delta", "conn_id": "conn_009", "event_type": "TIMEOUT", "source_addr": "10.20.0.10:55100", "dest_addr": "10.0.0.4:3306", "payload": {}}

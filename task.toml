@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "networking"
+difficulty = "hard"
+tags = ["tcp", "state-machine", "connection-pool", "networking", "protocol", "reconciliation"]
+
+difficulty_explanation = "Seven interacting defects across six source files. The bugs form a dependency graph: fixing the epoch offset alone causes the TIME_WAIT sweep to use wrong timestamps; fixing the direction handling alone doesn't help because the reconciler inflates transition counts causing eviction; fixing the pool reservation without the correct timeout sweeps valid slow-handshake connections. The agent must derive the correct timeout (30s) from protocol specification comments embedded in state_machine.py, understand that the config value (5s) is deliberately wrong, and coordinate fixes across sequencer, handlers, pool, reconciler, and orchestrator simultaneously."
+
+solution_explanation = "Patches six locations: (1) sequencer epoch offset division by 1000, (2) handler direction lookup using REMOTE_EVENTS set, (3) SYN_RECV handler dedup guard, (4) reconciler transition count uses len(history) not batch sum, (5) stale sweep uses reserved_at with 30s protocol timeout, (7) TIME_WAIT sweep excludes delta timestamps."
+
+verification_explanation = "Tests re-execute the runtime after patching and validate: no leaked reservations, pool accounting matches connection states, both half-close directions present, transition counts within bounds, no negative pool counts, CLOSED connections went through TIME_WAIT, delta timestamps within 5min of others, conn_003 stays ESTABLISHED, export hash integrity, and slow-handshake conn_005 not incorrectly swept."
+
+expert_time_estimate_hours = 3.5
+
+[task]
+name = "connection-state-recovery"
+description = "TCP connection state recovery system with seven interacting defects introduced by onboarding a new gateway source"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Requires coordinated fixes across 6 files with trap interactions where partial fixes worsen other tests"
+
+[task.runtime]
+entrypoint = "python3 runtime/run_recovery.py"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Re-executes patched runtime and validates connection lifecycle invariants"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Patches runtime files in-place and re-runs recovery"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"

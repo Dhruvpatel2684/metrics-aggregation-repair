@@ -1,0 +1,12 @@
+{"seq": 1, "timestamp": "2024-03-15T10:00:59.990Z", "source": "gateway_gamma", "conn_id": "conn_006", "event_type": "PASSIVE_OPEN", "source_addr": "10.10.0.5:60000", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 2, "timestamp": "2024-03-15T10:01:00.010Z", "source": "gateway_gamma", "conn_id": "conn_006", "event_type": "SYN_RECV", "source_addr": "10.10.0.5:60000", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 3, "timestamp": "2024-03-15T10:01:00.050Z", "source": "gateway_gamma", "conn_id": "conn_006", "event_type": "ACK_RECV", "source_addr": "10.10.0.5:60000", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 4, "timestamp": "2024-03-15T10:01:30.000Z", "source": "gateway_gamma", "conn_id": "conn_006", "event_type": "FIN_RECV", "source_addr": "10.10.0.5:60000", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 5, "timestamp": "2024-03-15T10:01:30.100Z", "source": "gateway_gamma", "conn_id": "conn_006", "event_type": "CLOSE", "source_addr": "10.10.0.5:60000", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 6, "timestamp": "2024-03-15T10:02:03.000Z", "source": "gateway_gamma", "conn_id": "conn_006", "event_type": "TIMEOUT", "source_addr": "10.10.0.5:60000", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 7, "timestamp": "2024-03-15T10:01:59.980Z", "source": "gateway_gamma", "conn_id": "conn_007", "event_type": "PASSIVE_OPEN", "source_addr": "10.10.0.10:60100", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 8, "timestamp": "2024-03-15T10:01:59.990Z", "source": "gateway_gamma", "conn_id": "conn_007", "event_type": "SYN_RECV", "source_addr": "10.10.0.10:60100", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 9, "timestamp": "2024-03-15T10:02:00.020Z", "source": "gateway_gamma", "conn_id": "conn_007", "event_type": "ACK_RECV", "source_addr": "10.10.0.10:60100", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 10, "timestamp": "2024-03-15T10:02:30.000Z", "source": "gateway_gamma", "conn_id": "conn_007", "event_type": "CLOSE", "source_addr": "10.10.0.10:60100", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 11, "timestamp": "2024-03-15T10:02:30.500Z", "source": "gateway_gamma", "conn_id": "conn_007", "event_type": "FIN_RECV", "source_addr": "10.10.0.10:60100", "dest_addr": "10.0.0.3:9090", "payload": {}}
+{"seq": 12, "timestamp": "2024-03-15T10:03:05.000Z", "source": "gateway_gamma", "conn_id": "conn_007", "event_type": "TIMEOUT", "source_addr": "10.10.0.10:60100", "dest_addr": "10.0.0.3:9090", "payload": {}}
