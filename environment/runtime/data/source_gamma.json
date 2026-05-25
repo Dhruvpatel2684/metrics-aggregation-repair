@@ -1,0 +1,30 @@
+{
+  "source_name": "gamma",
+  "source_priority": 3,
+  "features": [
+    {
+      "id": "geo_20001",
+      "type": "Polygon",
+      "coordinates": [[[10.60, 45.80], [10.65, 45.80], [10.65, 45.85], [10.60, 45.85], [10.60, 45.80]]],
+      "properties": {"name": "Park Gamma-1", "category": "recreation", "area_sqm": 2500.0, "seq": 1}
+    },
+    {
+      "id": "geo_20002",
+      "type": "Polygon",
+      "coordinates": [[[10.40, 45.30], [10.45, 45.30], [10.45, 45.35], [10.40, 45.35], [10.40, 45.30]]],
+      "properties": {"name": "Park Gamma-2", "category": "recreation", "area_sqm": 2500.0, "seq": 2}
+    },
+    {
+      "id": "geo_20003",
+      "type": "LineString",
+      "coordinates": [[10.30, 45.50], [10.50, 45.60], [10.70, 45.50]],
+      "properties": {"name": "Route Gamma-3", "category": "infrastructure", "area_sqm": 150.0, "seq": 3}
+    },
+    {
+      "id": "geo_20004",
+      "type": "LineString",
+      "coordinates": [[11.20, 46.4993], [11.35, 46.4997], [11.4990, 46.30]],
+      "properties": {"name": "Route Gamma-4", "category": "infrastructure", "area_sqm": 175.0, "seq": 4}
+    }
+  ]
+}

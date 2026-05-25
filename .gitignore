@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+environment/runtime/output/*.jsonl
+environment/runtime/output/*.json
+!environment/runtime/output/.gitkeep

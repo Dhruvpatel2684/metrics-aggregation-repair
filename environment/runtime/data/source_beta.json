@@ -1,0 +1,36 @@
+{
+  "source_name": "beta",
+  "source_priority": 2,
+  "features": [
+    {
+      "id": "poi_10001",
+      "type": "Point",
+      "coordinates": [10.32, 45.41],
+      "properties": {"name": "Station Beta-1", "category": "transport", "area_sqm": 28.0, "seq": 1}
+    },
+    {
+      "id": "poi_10002",
+      "type": "Point",
+      "coordinates": [10.48, 45.55],
+      "properties": {"name": "Station Beta-2", "category": "transport", "area_sqm": 33.0, "seq": 2}
+    },
+    {
+      "id": "poi_10003",
+      "type": "Point",
+      "coordinates": [10.55, 45.62],
+      "properties": {"name": "Station Beta-3", "category": "commercial", "area_sqm": 47.0, "seq": 3}
+    },
+    {
+      "id": "poi_10004",
+      "type": "Point",
+      "coordinates": [10.71, 45.38],
+      "properties": {"name": "Station Beta-4", "category": "residential", "area_sqm": 62.0, "seq": 4}
+    },
+    {
+      "id": "poi_10005",
+      "type": "Point",
+      "coordinates": [11.4995, 45.50],
+      "properties": {"name": "Station Beta-5", "category": "industrial", "area_sqm": 85.0, "seq": 5}
+    }
+  ]
+}

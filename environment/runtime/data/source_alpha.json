@@ -1,0 +1,36 @@
+{
+  "source_name": "alpha",
+  "source_priority": 1,
+  "features": [
+    {
+      "id": "poi_10001",
+      "type": "Point",
+      "coordinates": [10.32, 45.41],
+      "properties": {"name": "Station Alpha-1", "category": "transport", "area_sqm": 25.0, "seq": 1}
+    },
+    {
+      "id": "poi_10002",
+      "type": "Point",
+      "coordinates": [10.48, 45.55],
+      "properties": {"name": "Station Alpha-2", "category": "transport", "area_sqm": 30.0, "seq": 2}
+    },
+    {
+      "id": "poi_10003",
+      "type": "Point",
+      "coordinates": [10.55, 45.62],
+      "properties": {"name": "Station Alpha-3", "category": "commercial", "area_sqm": 45.0, "seq": 3}
+    },
+    {
+      "id": "poi_10004",
+      "type": "Point",
+      "coordinates": [10.71, 45.38],
+      "properties": {"name": "Station Alpha-4", "category": "residential", "area_sqm": 60.0, "seq": 4}
+    },
+    {
+      "id": "poi_10005",
+      "type": "Point",
+      "coordinates": [10.89, 45.72],
+      "properties": {"name": "Station Alpha-5", "category": "industrial", "area_sqm": 80.0, "seq": 5}
+    }
+  ]
+}

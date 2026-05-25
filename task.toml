@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "geospatial"
+difficulty = "hard"
+tags = ["spatial-index", "rtree", "bounding-box", "geospatial", "reconciliation"]
+
+difficulty_explanation = "Four interacting defects spread across geometry filtering, query engine, reconciler, and ingest modules. Each bug is semantically embedded in correct-looking code (leading space in config-parsed set membership, wrong config section name for spatial tolerance, cumulative vs assignment in window snapshot accounting, missing source field in sort key for sector assignment). Partial fixes cascade into new failures due to cross-module data dependencies."
+
+solution_explanation = "The repair patches 4 locations: (1) strips whitespace from comma-split config values in geometry type filtering, (2) changes config section for spatial tolerance from 'query' to 'query.precision', (3) changes reconciler area accumulation from += to =, (4) adds source field to sort key for deterministic sector ordering."
+
+verification_explanation = "Tests validate feature counts, source representation, LineString inclusion, query result bounds, area value integrity, deterministic ordering, and integrity hash consistency."
+
+expert_time_estimate_hours = 3.5
+
+[task]
+name = "spatial-index-repair"
+description = "Spatial indexing system with four semantically-embedded defects across geometry filtering, tolerance configuration, window accumulation, and sector sort ordering"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Bugs are not structurally identifiable — code looks correct in isolation. Requires tracing specific data values through the multi-module processing chain to identify where semantic assumptions fail."
+
+[task.runtime]
+entrypoint = "python3 -m runtime.run_indexer"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Validates feature coverage, spatial query correctness, area integrity, and export consistency"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Patches 4 semantic defects across 4 source files and re-runs indexer"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"
