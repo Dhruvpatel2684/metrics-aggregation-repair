@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
-environment/runtime/output/metrics_snapshot.jsonl
-environment/runtime/output/snapshot_integrity.json
+.pytest_cache/
+environment/runtime/output/cluster_health.json
+environment/runtime/output/committed_entries.json
 /logs/
