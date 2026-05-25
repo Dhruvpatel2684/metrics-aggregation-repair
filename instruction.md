@@ -1,103 +1,214 @@
-# AST Rewrite Engine
+# Time-Series Database Compaction Engine
 
-Global system-wide tooling for automated source code transformation. This engine processes custom `.src` source files through a configurable set of rewrite rules, producing deterministic transformation reports and rewrite manifests.
+## Overview
+
+This system implements a multi-tier retention compaction engine for high-frequency
+time-series metric data. It processes raw metric streams from distributed collectors,
+applies configurable window-based downsampling across multiple retention tiers, and
+produces deterministic compacted output with integrity verification.
+
+Global system-wide tooling ensures consistent behavior across all processing stages,
+from collector registry management through final output serialization.
 
 ## Architecture
 
-The system consists of five core modules located at `/app/runtime/`:
+The compaction engine operates as a batch processor that ingests tab-separated metric
+data from multiple collector sources, filters against the active collector registry,
+and applies progressive downsampling through configurable retention tiers.
 
-- **`/app/runtime/rule_loader.py`** - Loads the active transformation rule set from configuration. Rules are matched against an internal registry to determine which transformations are available for the current run.
+### Processing Flow
 
-- **`/app/runtime/scope_resolver.py`** - Resolves the maximum traversal depth for AST analysis. Nodes beyond the configured depth boundary are preserved without transformation to maintain structural integrity of deeply nested constructs.
+1. **Configuration Loading**: INI-based configuration provides collector registry,
+   windowing parameters, retention tier definitions, and output settings.
 
-- **`/app/runtime/visitor.py`** - Traverses parsed AST nodes, builds a symbol table of variable and function bindings, and identifies transformation candidates. Each file is processed independently with isolated symbol scope to prevent cross-file contamination.
+2. **Collector Filtering**: The active collector registry determines which metric
+   sources participate in compaction. Only metrics from registered active collectors
+   are processed.
 
-- **`/app/runtime/rule_chain.py`** - Applies the active rules to identified candidates and produces an ordered list of transformation operations. The transformation ordering uses (line, rule_name, priority) composite key to ensure deterministic output regardless of rule registration order.
+3. **Metric Ingestion**: Raw metric data is loaded from TSV files in the data
+   directory. Each record contains a millisecond-precision epoch timestamp,
+   collector identifier, metric name, and numeric value.
 
-- **`/app/runtime/hasher.py`** - Computes SHA-256 based integrity hashes for the transform report and rewrite manifest. Hashes are truncated to 16 hex characters.
+4. **Window Alignment**: Timestamps are aligned to window boundaries using the
+   precise windowing configuration. The alignment offset compensates for any
+   boundary shift in the bucket calculation.
+
+5. **Multi-Tier Rollup**: Metrics pass through each retention tier independently.
+   Each tier defines a window size (raw=1s, medium=60s, coarse=300s) and computes
+   windowed mean aggregates. Each retention tier processes independently with reset
+   aggregation state to ensure tier isolation.
+
+6. **Deterministic Sorting**: The final point set is sorted to guarantee reproducible
+   output. Deterministic ordering uses (timestamp, collector_id, metric_name) composite
+   key to ensure stable output regardless of processing order.
+
+7. **Integrity Hashing**: A SHA-256 based integrity hash captures the canonical state
+   of the compaction report, enabling downstream systems to detect any divergence.
 
 ## Configuration
 
-The system is configured via `/app/runtime/config/transforms.ini` using standard INI format with multiple sections:
+The system uses a sectioned INI configuration file (`retention.ini`) with the
+following structure:
 
-- `[project]` - Project metadata including source and output directory paths
-- `[rules]` - Active rule list and per-rule priority assignments
-- `[scoping]` and `[scoping.strict]` - Scope resolution parameters including maximum depth and traversal strategy
-- `[output]` - Output format settings
+### Engine Section
+- `engine_id`: Unique identifier for the compaction engine instance
+- `version`: Engine version string
 
-## Source Format
+### Collectors Section
+- `registered`: Comma-separated list of all known collector identifiers
+- `active_collectors`: Comma-separated list of currently active collectors
 
-Input files use a custom `.src` mini-language located in `/app/runtime/data/`. The format supports the following statement types:
+### Windowing Section
+- `alignment_offset_ms`: Offset applied during timestamp alignment
+- `window_strategy`: Windowing strategy (fixed or sliding)
+- `boundary_mode`: Boundary handling mode for precise alignment
+
+### Retention Section
+- `tiers`: Ordered list of retention tier names
+- `{tier}_window_ms`: Window size in milliseconds for each tier
+
+### Output Section
+- `format`: Output serialization format
+- `precision`: Decimal precision for aggregated values
+- `base_path`: Base directory for output files
+
+## Input Format
+
+Metric data files use tab-separated values (TSV) format:
 
 ```
-DECL <name> = <expression>       Variable declaration
-FUNC <name>(<params>) { <body> } Function definition
-CALL <target> = <func>(<args>)   Function invocation
-IF <condition> { <body> }        Conditional block
-ASSIGN <name> = <expression>     Variable reassignment
-NESTED { <statements> }          Nested scope block (increases depth)
-RETURN <expression>              Return from function
+ts	collector	metric	value
+1710500001000	cpu_host	cpu_usage	45.2
+1710500013000	cpu_host	cpu_usage	47.8
 ```
 
-Lines starting with `#` are comments. Blank lines are ignored. Each NESTED block increases the current scope depth by one level.
+Fields:
+- `ts`: Epoch timestamp in milliseconds (integer)
+- `collector`: Collector identifier string
+- `metric`: Metric name string
+- `value`: Numeric metric value (floating point)
 
-## Output
+## Output Schema
 
-The engine produces two output files in `/app/runtime/output/`:
-
-### transform_report.json
+### Compaction Report (`compaction_report.json`)
 
 ```json
 {
-  "project_id": "<configured project identifier>",
-  "total_files": <number of source files processed>,
-  "rules_applied": <total transformation operations across all files>,
-  "active_rules": <number of rules successfully loaded>,
-  "scope_depth": <configured maximum traversal depth>,
-  "files_processed": {
-    "<filename>": {
-      "transforms": <operations applied to this file>,
-      "symbols_resolved": <bindings tracked for this file>,
-      "dead_eliminated": <unreferenced declarations identified>
-    }
+  "engine_id": "tsdb-compact-v3",
+  "total_collectors": 4,
+  "active_collectors": 4,
+  "retention_tiers": 3,
+  "alignment_offset_ms": 0,
+  "points_ingested": 67,
+  "points_compacted": 92,
+  "tier_stats": {
+    "raw": {"points": 67, "window_ms": 1000},
+    "medium": {"points": 19, "window_ms": 60000},
+    "coarse": {"points": 6, "window_ms": 300000}
   },
-  "integrity_hash": "<sha256[:16] of report excluding this field>"
+  "integrity_hash": "<16-char hex SHA-256 prefix>"
 }
 ```
 
-### rewrite_manifest.json
+Fields:
+- `engine_id`: Engine instance identifier from configuration
+- `total_collectors`: Count of all registered collectors
+- `active_collectors`: Count of active collectors contributing metrics
+- `retention_tiers`: Number of retention tiers processed
+- `alignment_offset_ms`: Alignment offset used for window computation
+- `points_ingested`: Number of metric points after collector filtering
+- `points_compacted`: Total compacted points across all tiers
+- `tier_stats`: Per-tier statistics including point count and window size
+- `integrity_hash`: First 16 hex characters of SHA-256 over canonical report
+
+### Compacted Series (`compacted_series.json`)
 
 ```json
 {
-  "manifest_hash": "<sha256[:16] of operations array>",
-  "operations": [
+  "series_hash": "<16-char hex SHA-256 prefix>",
+  "points": [
     {
-      "file": "<source filename>",
-      "line": <line number of target declaration>,
-      "rule": "<rule name>",
-      "action": "<transformation action>",
-      "target": "<symbol name>",
-      "scope_depth": <nesting depth of target>
+      "ts": 1710499800000,
+      "collector": "cpu_host",
+      "metric": "cpu_usage",
+      "value": 54.57,
+      "tier": "raw",
+      "window_start": 1710499800000
     }
   ]
 }
 ```
 
-## Execution
+Fields per point:
+- `ts`: Window-aligned timestamp in milliseconds
+- `collector`: Source collector identifier
+- `metric`: Metric name
+- `value`: Aggregated mean value (rounded to 2 decimal places)
+- `tier`: Retention tier that produced this point
+- `window_start`: Start of the aggregation window
 
-Run from the `/app` working directory:
+## Retention Tiers
 
-```bash
-python3 -m runtime.run_rewriter
+The system processes three retention tiers with progressively larger windows:
+
+| Tier   | Window Size | Purpose                          |
+|--------|-------------|----------------------------------|
+| raw    | 1 second    | Per-second granularity           |
+| medium | 60 seconds  | Minute-level downsampling        |
+| coarse | 300 seconds | Five-minute summary aggregation  |
+
+Each tier independently processes all filtered input records, computing windowed
+mean values for each unique (window_start, collector, metric) combination within
+that tier's window size.
+
+## Integrity Verification
+
+The integrity hash provides tamper detection for the compaction report. It is
+computed by:
+
+1. Extracting all report fields except the hash itself
+2. Serializing to canonical JSON (sorted keys, compact separators)
+3. Computing SHA-256 of the UTF-8 encoded canonical string
+4. Taking the first 16 hexadecimal characters of the digest
+
+The series output includes a separate hash computed over the canonical JSON
+representation of the sorted points array.
+
+## Collector Registry
+
+The system maintains a registry of known metric collectors. The configuration
+distinguishes between all registered collectors and the subset that are currently
+active. Only metrics from active collectors pass through the ingestion filter.
+
+Collector identifiers must match exactly between the configuration registry and
+the collector field in metric data records for proper filtering.
+
+## Window Alignment
+
+Window alignment ensures that timestamps map deterministically to window
+boundaries. The alignment formula is:
+
+```
+window_start = ((ts - offset) // window_ms) * window_ms + offset
 ```
 
-The engine processes source files in alphabetical order and writes results to `/app/runtime/output/`.
+Where `offset` is the configured alignment offset and `window_ms` is the tier's
+window size. With offset=0 (precise mode), this simplifies to standard floor
+division to the nearest window boundary.
 
-## Transformation Rules
+## Execution
 
-- **rename** - Renames variable bindings with non-zero reference count
-- **inline** - Inlines function bodies at call sites when the function has exactly one invocation
-- **extract** - Extracts functions with multiple invocations into shared bindings
-- **dead_code** - Eliminates declarations that have zero downstream references
+Run the compaction engine:
 
-Rules are applied within the configured scope depth boundary. Nodes at depths exceeding the maximum are excluded from transformation to preserve deeply nested structural patterns.
+```bash
+python3 -m runtime.run_compactor
+```
+
+The engine reads from `runtime/data/` and writes to `runtime/output/`.
+
+## System Requirements
+
+- Python 3.11 or later
+- Standard library only (no external dependencies)
+- Input data in TSV format with proper headers
+- Writable output directory

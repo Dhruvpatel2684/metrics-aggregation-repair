@@ -1,6 +1,5 @@
 __pycache__/
 *.pyc
+*.pyo
 .pytest_cache/
-environment/runtime/output/transform_report.json
-environment/runtime/output/rewrite_manifest.json
-/logs/
+environment/runtime/output/*.json

@@ -1,0 +1,48 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Create the complete tsdb-compact-repair Harbor Terminal-Bench task from scratch: all source modules with 5 embedded bugs, TSV data files, config, tests (10 graduated), solution repair script, Dockerfile, task.toml, instruction.md, and .gitignore. This is a single large feature because all parts are interdependent - tests validate the output of the runtime, the solution fixes the runtime, and everything must be consistent.",
+  "status": "in_progress",
+  "steps": [
+    "Step 1: Create top-level config files - task.toml (exact content provided in task spec) and .gitignore (Python patterns, output/ ignores)",
+    "Step 2: Create environment/Dockerfile with python:3.11-slim base, uv install, COPY runtime to /app/runtime, WORKDIR /app",
+    "Step 3: Create environment/runtime/config/retention.ini with INI config containing [collectors] section with active_collectors having space before net_host (Bug A), [windowing] section with alignment_offset_ms=5000 (wrong, Bug B), [windowing.precise] with alignment_offset_ms=0 (correct), [retention] with tier definitions (raw=1000ms, medium=60000ms, coarse=300000ms), and other plausible settings",
+    "Step 4: Create environment/runtime/data/metrics_cpu.tsv (~25 rows with header 'ts\\tcollector\\tmetric\\tvalue', timestamps epoch ms around 1710500000000, cpu_host collector, cpu_usage metric, values 30-80 range). Include same-timestamp entries as other files for Bug D testing. Span at least 5+ minutes of data.",
+    "Step 5: Create environment/runtime/data/metrics_mem.tsv (~22 rows, mem_host collector, mem_free_mb metric, values 1500-4096 range, some timestamps shared with cpu file)",
+    "Step 6: Create environment/runtime/data/metrics_net.tsv (~20 rows, net_host collector, net_bytes_in metric, values 50000-200000 range, some timestamps shared with other files)",
+    "Step 7: Create environment/runtime/__init__.py (empty) and environment/runtime/config/__init__.py (config loader using configparser, reads retention.ini, provides get_config() function)",
+    "Step 8: Create environment/runtime/collector_filter.py - Contains Bug A: reads active_collectors from config, splits on comma WITHOUT stripping whitespace, returns set of active collector IDs. Has a get_active_collectors() function.",
+    "Step 9: Create environment/runtime/aligner.py - Contains Bug B (reads from [windowing] instead of [windowing.precise]) AND Bug E (module-level cached offset). Has _load_alignment() that reads config and returns offset_ms. Module-level _cached_offset = _load_alignment(). align_timestamp(ts, window_ms) function uses _cached_offset to compute window_start. The function should be: window_start = ((ts - _cached_offset) // window_ms) * window_ms + _cached_offset",
+    "Step 10: Create environment/runtime/rollup.py - Contains Bug C: processes data through 3 retention tiers (raw, medium, coarse). Has a class CompactionEngine with a running_sum dict that is initialized once in __init__ but NOT reset between tiers. Has a flush_buffer() method (RED HERRING) that clears an I/O write buffer, not the running_sum. Comment says 'uses windowing.precise for aligned bucket boundaries'. The rollup groups points into windows per tier, computing mean values per (window_start, collector, metric) group.",
+    "Step 11: Create environment/runtime/sorter.py - Contains Bug D: sorts compacted points by (timestamp, value) instead of correct (timestamp, collector_id, metric_name). Has a comment '# Note: metric_value varies per collection cycle' near the sort.",
+    "Step 12: Create environment/runtime/hasher.py - Computes SHA-256 of canonical JSON representation of the compaction report (sorted keys, no extra whitespace). Returns first 16 hex chars.",
+    "Step 13: Create environment/runtime/run_compactor.py - Main entry point. Orchestrates: load config, filter collectors, read TSV files from data/, run compaction engine (rollup) through tiers, sort output, compute hash, write compaction_report.json and compacted_series.json to output/. Must produce valid JSON output even with bugs (just incorrect values).",
+    "Step 14: Create environment/runtime/output/.gitkeep (empty file)",
+    "Step 15: Create tests/test.sh (bash script that runs compactor then pytest, writes to /logs/verifier/output.log and /logs/verifier/reward.txt)",
+    "Step 16: Create tests/test_compactor.py with 10 graduated tests: 4 easy (structural - always pass), 3 medium (need fixes A/B/C), 3 hard (need most/all fixes). Tests must run the compactor first (or assume it was run by test.sh) and read output files. Medium tests have vague error messages. Hard test 8 checks ordering with explicit hint about composite key. Hard test 9 checks integrity hash. Hard test 10 checks cross-concern consistency.",
+    "Step 17: Create solution/solve.sh (runs python3 /solution/repair_compactor.py)",
+    "Step 18: Create solution/repair_compactor.py - Python script that patches all 5 bugs via file read/string-replace/write operations on /app/runtime/ files, then re-runs the compactor",
+    "Step 19: Create instruction.md - Describes the system abstractly. Must contain 'system-wide' somewhere. Must NOT contain word 'pipeline'. Must describe sort order as 'deterministic ordering uses (timestamp, collector_id, metric_name) composite key'. Must describe tier independence as 'each retention tier processes independently with reset aggregation state'. Documents both output schemas.",
+    "Step 20: Verify locally - run the compactor with bugs to confirm it produces output without crashing. Run tests to confirm 4 pass / 6 fail. Apply the repair script, re-run to confirm all 10 pass."
+  ],
+  "acceptance_criteria": [
+    "Running python3 -m runtime.run_compactor from environment/ directory produces compaction_report.json and compacted_series.json in output/",
+    "With bugs present (NOP): exactly 4 easy tests pass and 6 tests fail",
+    "After applying repair script (Oracle): all 10 tests pass",
+    "No BUG/FIXME/TODO/HACK comments exist in any source file",
+    "instruction.md contains 'system-wide' and does not contain 'pipeline'",
+    "instruction.md documents the correct sort order and tier independence",
+    "TSV data files have ~67 total rows across 3 files with appropriate timestamp distribution",
+    "Bug E is only visible after Bug B is fixed (cached alignment offset at module level)"
+  ],
+  "verification": [
+    "cd environment && python3 -m runtime.run_compactor && echo 'Compactor runs successfully'",
+    "ls environment/runtime/output/compaction_report.json environment/runtime/output/compacted_series.json",
+    "cd environment && python3 -m pytest ../tests/test_compactor.py -v 2>&1 | grep -E 'passed|failed'",
+    "grep -r 'BUG\\|FIXME\\|TODO\\|HACK' environment/runtime/ || echo 'No forbidden comments found'",
+    "grep 'system-wide' instruction.md",
+    "grep -c 'pipeline' instruction.md | grep '^0$' || echo 'ERROR: pipeline found in instruction.md'"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

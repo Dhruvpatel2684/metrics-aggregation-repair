@@ -1,0 +1,7 @@
+{
+  "task_id": "task-tsdb-compact-repair",
+  "task_description": "Create a complete Harbor Terminal-Bench debugging task for a time-series database compaction engine with 5 interacting bugs, TSV data format, multi-tier retention processing, and graduated test suite (4 easy / 3 medium / 3 hard)",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}

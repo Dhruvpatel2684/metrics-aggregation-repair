@@ -1,30 +1,30 @@
 author_name = "Dhruvkumar Patel"
 author_email = "dhruvpatel2284@gmail.com"
-category = "Compiler Internals"
+category = "Time-Series Databases"
 difficulty = "hard"
-tags = ["ast", "code-transformation", "refactoring", "static-analysis", "rewriter"]
+tags = ["tsdb", "compaction", "retention", "downsampling", "time-series"]
 
-difficulty_explanation = "Five interacting defects across rule loading, scope resolution, visitor state management, transformation ordering, and cached depth invalidation create a dependency chain requiring understanding of AST traversal and multi-pass compilation semantics."
-solution_explanation = "Fix rule list parsing to strip whitespace, correct config section for scope depth, reset symbol table between file passes, add rule_name to sort key for deterministic ordering, and invalidate cached scope depth after config fix."
-verification_explanation = "Tests validate rule count, scope depth, per-file transform counts, operation ordering, hash integrity, and cross-concern consistency requiring all defects to be fixed simultaneously."
+difficulty_explanation = "Five interacting defects across collector filtering, window alignment, tier-based rollup accumulation, sort ordering, and cached offset invalidation create a dependency chain requiring understanding of time-series compaction semantics and multi-tier retention processing."
+solution_explanation = "Fix collector list parsing to strip whitespace, correct config section for alignment offset, reset rollup accumulator between retention tiers, add collector_id to sort key for deterministic ordering, and invalidate cached alignment offset after config fix."
+verification_explanation = "Tests validate collector count, alignment offset, tier aggregation bounds, point ordering, hash integrity, and cross-concern consistency requiring all defects fixed simultaneously."
 expert_time_estimate_hours = 3.5
 
 [task]
-name = "ast-rewrite-repair"
-description = "An AST-based source code transformation engine that parses custom source files, applies configurable rewrite rules through scoped visitors, and produces deterministic transformation reports and rewrite manifests."
+name = "tsdb-compact-repair"
+description = "A time-series database compaction engine that processes high-frequency metric streams from multiple collectors, applies multi-tier retention policies with configurable window alignment, and produces deterministic compacted series data with integrity verification."
 
 [task.difficulty]
 level = "hard"
-reasoning = "Five interacting defects form a dependency chain where one only manifests after another is fixed, custom source format requires understanding the parser, and hash verification demands all issues fixed simultaneously."
+reasoning = "Five interacting defects form a dependency chain where one only manifests after another is fixed, TSV data format requires understanding the parser, and hash verification demands all issues fixed simultaneously."
 
 [task.runtime]
-entrypoint = "python3 -m runtime.run_rewriter"
+entrypoint = "python3 -m runtime.run_compactor"
 language = "python"
 dependencies = "stdlib-only"
 
 [task.validator]
 command = "bash tests/test.sh"
-description = "Runs the AST rewriter and validates output correctness"
+description = "Runs the compaction engine and validates output correctness"
 
 [task.repair]
 command = "bash solution/solve.sh"
