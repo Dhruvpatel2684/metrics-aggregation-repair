@@ -1,0 +1,24 @@
+{
+  "queries": [
+    {
+      "id": "q1",
+      "description": "Simple join with filter",
+      "sql": "SELECT e.name, d.name FROM employees e JOIN departments d ON e.dept_id = d.id WHERE e.salary > 90000 ORDER BY e.name"
+    },
+    {
+      "id": "q2",
+      "description": "Aggregate with GROUP BY including NULLs",
+      "sql": "SELECT dept_id, COUNT(*) as cnt, AVG(salary) as avg_sal FROM employees GROUP BY dept_id ORDER BY dept_id"
+    },
+    {
+      "id": "q3",
+      "description": "Join with sort-merge method and salary ordering",
+      "sql": "SELECT e.name, d.name, e.salary FROM employees e JOIN departments d ON e.dept_id = d.id WHERE d.budget >= 300000 ORDER BY e.salary DESC"
+    },
+    {
+      "id": "q4",
+      "description": "Aggregate with partition boundary",
+      "sql": "SELECT dept_id, SUM(salary) as total_sal FROM employees GROUP BY dept_id ORDER BY total_sal DESC"
+    }
+  ]
+}

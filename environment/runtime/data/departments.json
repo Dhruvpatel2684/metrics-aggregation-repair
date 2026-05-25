@@ -1,0 +1,12 @@
+{
+  "table_name": "departments",
+  "columns": ["id", "name", "budget"],
+  "rows": [
+    [1, "Engineering", 500000],
+    [2, "Marketing", 300000],
+    [3, "Sales", 400000],
+    [4, "Support", 200000],
+    [5, "Research", 350000],
+    [6, "Operations", null]
+  ]
+}

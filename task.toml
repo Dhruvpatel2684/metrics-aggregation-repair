@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "databases"
+difficulty = "hard"
+tags = ["sql", "query-engine", "aggregation", "join-optimization", "partitioned-processing"]
+
+difficulty_explanation = "Four interacting defects across planner, executor, aggregator, and sorter modules. Bug A (config space in join methods) causes wrong join strategy. Bug B (wrong config section for NULL handling) drops NULL groups. Bug C (partition snapshot accumulation) inflates COUNT/SUM. Bug D (sort tiebreaker) produces wrong order for ties across partitions. Partial fixes cascade: fixing C without B still reports wrong group count; fixing A without D still has wrong order."
+
+solution_explanation = "Patches: (1) strip whitespace from comma-split join methods in planner, (2) change executor config section from [executor] to [executor.strict] for NULL handling, (3) fix aggregator to use actual row counts instead of summed snapshots, (4) add partition_idx to sort tiebreaker key."
+
+verification_explanation = "Tests validate q1 join results, q2 group count including NULLs, q2 per-group counts, q3 join method selection, q3 result ordering with tied values, q4 SUM accuracy, output file existence, query completion, and integrity hash."
+
+expert_time_estimate_hours = 3.0
+
+[task]
+name = "query-planner-repair"
+description = "SQL query execution engine with four interacting defects across join planning, NULL handling, partition aggregation, and sort ordering"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Bugs require understanding partition-based execution semantics, config section indirection, and data-dependent sort behavior"
+
+[task.runtime]
+entrypoint = "python3 -m runtime.run_engine"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Validates query results, aggregate accuracy, join method selection, and deterministic ordering"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Patches 4 defects across planner, executor, aggregator, and sorter"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"
