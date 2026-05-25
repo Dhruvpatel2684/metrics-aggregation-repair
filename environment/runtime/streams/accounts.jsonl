@@ -1,0 +1,29 @@
+{"stream_id": "accounts", "seq": 1, "timestamp": "2024-01-15T10:00:01.000Z", "type": "account_created", "data": {"account_id": "acct_001", "initial_balance": 0}}
+{"stream_id": "accounts", "seq": 2, "timestamp": "2024-01-15T10:00:02.000Z", "type": "account_created", "data": {"account_id": "acct_002", "initial_balance": 0}}
+{"stream_id": "accounts", "seq": 3, "timestamp": "2024-01-15T10:00:03.000Z", "type": "account_created", "data": {"account_id": "acct_003", "initial_balance": 0}}
+{"stream_id": "accounts", "seq": 4, "timestamp": "2024-01-15T10:00:04.000Z", "type": "account_created", "data": {"account_id": "acct_004", "initial_balance": 0}}
+{"stream_id": "accounts", "seq": 5, "timestamp": "2024-01-15T10:00:05.000Z", "type": "account_created", "data": {"account_id": "acct_005", "initial_balance": 0}}
+{"stream_id": "accounts", "seq": 6, "timestamp": "2024-01-15T10:01:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_001", "amount": 500, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 7, "timestamp": "2024-01-15T10:01:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_002", "amount": 800, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 8, "timestamp": "2024-01-15T10:02:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_001", "amount": 300, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 9, "timestamp": "2024-01-15T10:02:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_003", "amount": 600, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 10, "timestamp": "2024-01-15T10:03:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_004", "amount": 1000, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 11, "timestamp": "2024-01-15T10:03:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_003", "amount": 200, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 12, "timestamp": "2024-01-15T10:04:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_002", "amount": 500, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 13, "timestamp": "2024-01-15T10:04:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_005", "amount": 700, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 14, "timestamp": "2024-01-15T10:05:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_001", "amount": 400, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 15, "timestamp": "2024-01-15T10:05:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_004", "amount": 800, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 16, "timestamp": "2024-01-15T10:06:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_003", "amount": 300, "direction": "debit"}}
+{"stream_id": "accounts", "seq": 17, "timestamp": "2024-01-15T10:06:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_005", "amount": 400, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 18, "timestamp": "2024-01-15T10:07:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_002", "amount": 600, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 19, "timestamp": "2024-01-15T10:07:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_001", "amount": 200, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 20, "timestamp": "2024-01-15T10:08:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_004", "amount": 500, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 21, "timestamp": "2024-01-15T10:08:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_005", "amount": 300, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 22, "timestamp": "2024-01-15T10:09:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_002", "amount": 400, "direction": "debit"}}
+{"stream_id": "accounts", "seq": 23, "timestamp": "2024-01-15T10:09:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_001", "amount": 100, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 24, "timestamp": "2024-01-15T10:10:00.000Z", "type": "balance_updated", "data": {"account_id": "acct_003", "amount": 500, "direction": "credit"}}
+{"stream_id": "accounts", "seq": 25, "timestamp": "2024-01-15T10:10:30.000Z", "type": "balance_updated", "data": {"account_id": "acct_005", "amount": 500, "direction": "debit"}}
+{"stream_id": "accounts", "seq": 26, "timestamp": "2024-01-15T10:11:00.000Z", "type": "snapshot_taken", "data": {"account_id": "acct_001", "balance": 1500}}
+{"stream_id": "accounts", "seq": 27, "timestamp": "2024-01-15T10:11:01.000Z", "type": "snapshot_taken", "data": {"account_id": "acct_002", "balance": 2300}}
+{"stream_id": "accounts", "seq": 28, "timestamp": "2024-01-15T10:11:02.000Z", "type": "snapshot_taken", "data": {"account_id": "acct_004", "balance": 3100}}
+{"stream_id": "accounts", "seq": 29, "timestamp": "2024-01-15T10:11:03.000Z", "type": "snapshot_taken", "data": {"account_id": "acct_005", "balance": 1900}}

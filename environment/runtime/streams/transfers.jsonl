@@ -1,0 +1,15 @@
+{"stream_id": "transfers", "seq": 1, "timestamp": "2024-01-15T10:01:15.000Z", "type": "transfer_completed", "data": {"from_account": "acct_001", "to_account": "acct_002", "amount": 100}}
+{"stream_id": "transfers", "seq": 2, "timestamp": "2024-01-15T10:02:15.000Z", "type": "transfer_completed", "data": {"from_account": "acct_002", "to_account": "acct_003", "amount": 200}}
+{"stream_id": "transfers", "seq": 3, "timestamp": "2024-01-15T10:03:15.000Z", "type": "transfer_completed", "data": {"from_account": "acct_003", "to_account": "acct_004", "amount": 150}}
+{"stream_id": "transfers", "seq": 4, "timestamp": "2024-01-15T10:03:30.000Z", "type": "transfer_completed", "data": {"from_account": "acct_005", "to_account": "acct_003", "amount": 500}}
+{"stream_id": "transfers", "seq": 5, "timestamp": "2024-01-15T10:04:15.000Z", "type": "transfer_completed", "data": {"from_account": "acct_004", "to_account": "acct_005", "amount": 300}}
+{"stream_id": "transfers", "seq": 6, "timestamp": "2024-01-15T10:05:15.000Z", "type": "transfer_completed", "data": {"from_account": "acct_001", "to_account": "acct_002", "amount": 100}}
+{"stream_id": "transfers", "seq": 7, "timestamp": "2024-01-15T10:06:15.000Z", "type": "transfer_completed", "data": {"from_account": "acct_002", "to_account": "acct_001", "amount": 250}}
+{"stream_id": "transfers", "seq": 8, "timestamp": "2024-01-15T10:07:15.000Z", "type": "transfer_completed", "data": {"from_account": "acct_005", "to_account": "acct_002", "amount": 175}}
+{"stream_id": "transfers", "seq": 9, "timestamp": "2024-01-15T10:08:15.000Z", "type": "transfer_completed", "data": {"from_account": "acct_003", "to_account": "acct_001", "amount": 200}}
+{"stream_id": "transfers", "seq": 10, "timestamp": "2024-01-15T10:08:45.000Z", "type": "transfer_completed", "data": {"from_account": "acct_001", "to_account": "acct_002", "amount": 350}}
+{"stream_id": "transfers", "seq": 11, "timestamp": "2024-01-15T10:09:15.000Z", "type": "transfer_completed", "data": {"from_account": "acct_002", "to_account": "acct_005", "amount": 400}}
+{"stream_id": "transfers", "seq": 12, "timestamp": "2024-01-15T10:09:45.000Z", "type": "transfer_completed", "data": {"from_account": "acct_004", "to_account": "acct_001", "amount": 275}}
+{"stream_id": "transfers", "seq": 13, "timestamp": "2024-01-15T10:09:50.000Z", "type": "transfer_completed", "data": {"from_account": "acct_005", "to_account": "acct_003", "amount": 150}}
+{"stream_id": "transfers", "seq": 14, "timestamp": "2024-01-15T10:10:30.000Z", "type": "transfer_completed", "data": {"from_account": "acct_001", "to_account": "acct_004", "amount": 100}}
+{"stream_id": "transfers", "seq": 15, "timestamp": "2024-01-15T10:10:45.000Z", "type": "transfer_completed", "data": {"from_account": "acct_004", "to_account": "acct_005", "amount": 125}}

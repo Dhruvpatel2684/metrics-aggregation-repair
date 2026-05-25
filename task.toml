@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "event-sourcing"
+difficulty = "hard"
+tags = ["cqrs", "event-replay", "materialized-views", "stream-processing", "python"]
+
+difficulty_explanation = "Four interacting defects across projector, materializer, reducer, and event store. Config space silently excludes snapshot events. Wrong config section prevents proper compaction. Batch accumulation inflates balances. Missing sort field causes non-deterministic event ordering. Fixing any subset leaves remaining tests failing."
+
+solution_explanation = "Patches: (1) strip whitespace in projector config parsing, (2) change materializer config section from compaction to compaction.aggressive, (3) change reducer accumulation from += to = for last-write-wins, (4) add stream_id to event sort key for deterministic ordering."
+
+verification_explanation = "Tests validate output file existence, account presence, report structure, event counts, snapshot processing, balance bounds, specific account values, compaction configuration, and integrity hash."
+
+expert_time_estimate_hours = 3.0
+
+[task]
+name = "log-replay-repair"
+description = "Event replay system with four interacting defects in event ordering, config parsing, batch accumulation, and compaction configuration"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Bugs span 4 files with cross-module interactions. Config space bug is invisible. Wrong config section requires reading comments in another file. Accumulation looks correct. Sort bug is data-dependent."
+
+[task.runtime]
+entrypoint = "python3 -m runtime.run_replay"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Validates account balances, compaction behavior, snapshot processing, and output integrity"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Patches 4 defects and re-runs event replay"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"
