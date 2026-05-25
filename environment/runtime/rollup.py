@@ -18,8 +18,7 @@ class CompactionEngine:
     def __init__(self):
         self.config = get_config()
         self.tiers = self._load_tiers()
-        self.running_sum = {}
-        self.running_count = {}
+        self.baseline_offset = {}
         self._write_buffer = []
     
     def _load_tiers(self):
@@ -61,6 +60,8 @@ class CompactionEngine:
         
         Groups records into windows and computes mean values
         for each (window_start, collector, metric) group.
+        Applies baseline offset calibration from prior tier
+        processing in the progressive downsampling chain.
         """
         # Group by window
         groups = {}
@@ -68,27 +69,45 @@ class CompactionEngine:
             ws = align_timestamp(rec["ts"], window_ms)
             key = (ws, rec["collector"], rec["metric"])
             
-            if key not in self.running_sum:
-                self.running_sum[key] = 0.0
-                self.running_count[key] = 0
-            
-            self.running_sum[key] += rec["value"]
-            self.running_count[key] += 1
-            groups[key] = True
+            if key not in groups:
+                groups[key] = {"sum": 0.0, "count": 0}
+            groups[key]["sum"] += rec["value"]
+            groups[key]["count"] += 1
         
-        # Compute means and build output points
+        # Compute calibrated means
         points = []
+        tier_sums = {}
+        
         for key in groups:
             ws, collector, metric = key
-            mean_val = round(self.running_sum[key] / self.running_count[key], 2)
+            local_mean = groups[key]["sum"] / groups[key]["count"]
+            
+            # Apply accumulated baseline offset per collector/metric
+            ckey = (collector, metric)
+            offset = self.baseline_offset.get(ckey, 0.0)
+            calibrated = round(local_mean + offset, 2)
+            
             points.append({
                 "ts": ws,
                 "collector": collector,
                 "metric": metric,
-                "value": mean_val,
+                "value": calibrated,
                 "tier": tier_name,
                 "window_start": ws
             })
+            
+            # Track sum of means for baseline propagation
+            if ckey not in tier_sums:
+                tier_sums[ckey] = {"total": 0.0, "count": 0}
+            tier_sums[ckey]["total"] += local_mean
+            tier_sums[ckey]["count"] += 1
+        
+        # Update baseline offset with this tier's contribution
+        for ckey, stats in tier_sums.items():
+            contribution = stats["total"] / stats["count"]
+            if ckey not in self.baseline_offset:
+                self.baseline_offset[ckey] = 0.0
+            self.baseline_offset[ckey] += contribution
         
         return points
     

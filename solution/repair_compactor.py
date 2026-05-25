@@ -93,7 +93,7 @@ def fix_aligner():
 
 
 def fix_rollup():
-    """Fix tier accumulator reset between retention tiers."""
+    """Fix tier baseline reset between retention tiers."""
     path = "/app/runtime/rollup.py"
     with open(path, "r") as f:
         content = f.read()
@@ -101,9 +101,8 @@ def fix_rollup():
     content = content.replace(
         "        # Group by window\n"
         "        groups = {}",
-        "        # Reset accumulators for tier independence\n"
-        "        self.running_sum = {}\n"
-        "        self.running_count = {}\n"
+        "        # Reset baseline for tier independence\n"
+        "        self.baseline_offset = {}\n"
         "        # Group by window\n"
         "        groups = {}"
     )
