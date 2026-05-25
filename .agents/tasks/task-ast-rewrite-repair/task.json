@@ -1,7 +1,14 @@
 {
   "task_id": "task-ast-rewrite-repair",
   "task_description": "Create a complete Harbor Terminal-Bench debugging task implementing an AST-based code transformation engine with 5 interacting bugs across rule loading, scope resolution, visitor state, transformation ordering, and cached depth invalidation.",
-  "status": "in_progress",
+  "status": "completed",
+  "verification": {
+    "build": "pass",
+    "tests": "pass",
+    "test_quality": "pass",
+    "docker_build": "skipped",
+    "summary": "NOP state: 4 easy tests pass, 6 medium+hard fail. Oracle state: all 10 tests pass. Bug E confirmed invisible until Bug B fixed. No BUG/FIXME/TODO/HACK. No 'pipeline'. Contains 'system-wide'. Custom .src format."
+  },
   "feature_order": ["FEAT-001"],
   "blocked_reason": null
 }
