@@ -204,7 +204,7 @@ Run the compaction engine:
 python3 -m runtime.run_compactor
 ```
 
-The engine reads from `runtime/data/` and writes to `runtime/output/`.
+The engine reads from `/app/runtime/data/` and writes to `/app/runtime/output/`.
 
 ## System Requirements
 
