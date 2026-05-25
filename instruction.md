@@ -1,77 +1,103 @@
-# Raft Election Reconciliation System
+# AST Rewrite Engine
 
-## Overview
-
-Global system-wide tooling for distributed consensus state reconciliation. This system processes multi-epoch cluster events from replicated data streams and produces deterministic reconciliation reports through propose and commit phases.
+Global system-wide tooling for automated source code transformation. This engine processes custom `.src` source files through a configurable set of rewrite rules, producing deterministic transformation reports and rewrite manifests.
 
 ## Architecture
 
-The reconciliation engine operates across several coordinated modules located under `/app/runtime/`:
+The system consists of five core modules located at `/app/runtime/`:
 
-- **Epoch Tracker** (`/app/runtime/epoch_tracker.py`): Detects epoch boundaries in the event stream and groups records into epoch buckets. Boundary detection uses a lookahead mechanism with configurable threshold to determine when records should transition between epoch groupings.
+- **`/app/runtime/rule_loader.py`** - Loads the active transformation rule set from configuration. Rules are matched against an internal registry to determine which transformations are available for the current run.
 
-- **Registry** (`/app/runtime/registry.py`): Manages voter identity resolution through alias mapping from configuration. The cluster configuration defines node aliases that map to canonical voter identifiers used in consensus validation.
+- **`/app/runtime/scope_resolver.py`** - Resolves the maximum traversal depth for AST analysis. Nodes beyond the configured depth boundary are preserved without transformation to maintain structural integrity of deeply nested constructs.
 
-- **Reconciler** (`/app/runtime/reconciler.py`): Implements two-phase reconciliation. Each reconciliation phase operates independently on its input window, processing heartbeat acknowledgment values into accumulated totals across configurable window sizes.
+- **`/app/runtime/visitor.py`** - Traverses parsed AST nodes, builds a symbol table of variable and function bindings, and identifies transformation candidates. Each file is processed independently with isolated symbol scope to prevent cross-file contamination.
 
-- **Merger** (`/app/runtime/merger.py`): Produces deterministic merge ordering of log entries from multiple data streams. Canonical ordering uses the composite key (timestamp, node identifier, term) to ensure reproducible commitment manifests across runs.
+- **`/app/runtime/rule_chain.py`** - Applies the active rules to identified candidates and produces an ordered list of transformation operations. The transformation ordering uses (line, rule_name, priority) composite key to ensure deterministic output regardless of rule registration order.
 
-- **Consensus** (`/app/runtime/consensus.py`): Validates quorum state using the voter count from the registry. The majority strategy determines the required quorum threshold for election validity.
-
-- **Hasher** (`/app/runtime/hasher.py`): Computes integrity hashes for output verification using canonical JSON serialization.
-
-## Data Format
-
-Input data resides in `/app/runtime/data/` as JSONL files (one JSON object per line). Each stream file contains records with abbreviated field names:
-
-- `ts`: ISO-8601 timestamp
-- `nid`: Node identifier
-- `epoch`: Epoch number
-- `type`: Record type (`hb` for heartbeat, `vote`, `log`)
-- Type-specific fields: `acks`, `voter`, `candidate`, `granted`, `idx`, `op`, `term`, `lid`
+- **`/app/runtime/hasher.py`** - Computes SHA-256 based integrity hashes for the transform report and rewrite manifest. Hashes are truncated to 16 hex characters.
 
 ## Configuration
 
-Cluster configuration at `/app/runtime/config/cluster.ini` defines:
+The system is configured via `/app/runtime/config/transforms.ini` using standard INI format with multiple sections:
 
-- Cluster identity and node topology
-- Voter alias mappings for identity resolution
-- Epoch boundary parameters
-- Reconciliation window sizing and phase definitions
-- Quorum strategy
+- `[project]` - Project metadata including source and output directory paths
+- `[rules]` - Active rule list and per-rule priority assignments
+- `[scoping]` and `[scoping.strict]` - Scope resolution parameters including maximum depth and traversal strategy
+- `[output]` - Output format settings
+
+## Source Format
+
+Input files use a custom `.src` mini-language located in `/app/runtime/data/`. The format supports the following statement types:
+
+```
+DECL <name> = <expression>       Variable declaration
+FUNC <name>(<params>) { <body> } Function definition
+CALL <target> = <func>(<args>)   Function invocation
+IF <condition> { <body> }        Conditional block
+ASSIGN <name> = <expression>     Variable reassignment
+NESTED { <statements> }          Nested scope block (increases depth)
+RETURN <expression>              Return from function
+```
+
+Lines starting with `#` are comments. Blank lines are ignored. Each NESTED block increases the current scope depth by one level.
 
 ## Output
 
-The system produces two output files:
+The engine produces two output files in `/app/runtime/output/`:
 
-### `/app/runtime/output/reconciliation_state.json`
+### transform_report.json
 
-Contains the full reconciliation state including:
-- `cluster_id`: Cluster identifier
-- `total_nodes`: Total node count in cluster
-- `active_voters`: Number of registered voters resolved from configuration
-- `quorum_reached`: Boolean indicating if quorum threshold was met
-- `quorum_size`: Required votes for quorum
-- `leader_node`: Current leader identifier
-- `current_epoch`: Maximum epoch observed
-- `epoch_stats`: Per-epoch statistics with `record_count`, `hb_count`, `vote_count`, `log_count`
-- `reconciliation`: Phase results with `propose` and `commit` sub-objects containing `total_acks` and window/entry counts
-- `integrity_hash`: SHA-256 truncated hash of the state structure
+```json
+{
+  "project_id": "<configured project identifier>",
+  "total_files": <number of source files processed>,
+  "rules_applied": <total transformation operations across all files>,
+  "active_rules": <number of rules successfully loaded>,
+  "scope_depth": <configured maximum traversal depth>,
+  "files_processed": {
+    "<filename>": {
+      "transforms": <operations applied to this file>,
+      "symbols_resolved": <bindings tracked for this file>,
+      "dead_eliminated": <unreferenced declarations identified>
+    }
+  },
+  "integrity_hash": "<sha256[:16] of report excluding this field>"
+}
+```
 
-### `/app/runtime/output/commitment_manifest.json`
+### rewrite_manifest.json
 
-Contains committed log entries with:
-- `manifest_hash`: Integrity hash of the entries array
-- `entries`: Ordered list of committed entries, each with `index`, `ts`, `nid`, `term`, `op`, `phase`, `ack_count`, `epoch`
+```json
+{
+  "manifest_hash": "<sha256[:16] of operations array>",
+  "operations": [
+    {
+      "file": "<source filename>",
+      "line": <line number of target declaration>,
+      "rule": "<rule name>",
+      "action": "<transformation action>",
+      "target": "<symbol name>",
+      "scope_depth": <nesting depth of target>
+    }
+  ]
+}
+```
 
 ## Execution
 
-Run the system from `/app`:
+Run from the `/app` working directory:
 
+```bash
+python3 -m runtime.run_rewriter
 ```
-python3 -m runtime.run_election
-```
 
-## Validation
+The engine processes source files in alphabetical order and writes results to `/app/runtime/output/`.
 
-The validation suite checks structural correctness, epoch distribution accuracy, voter participation, reconciliation phase integrity, manifest hash consistency, and end-to-end quorum validation across the full processing chain.
+## Transformation Rules
+
+- **rename** - Renames variable bindings with non-zero reference count
+- **inline** - Inlines function bodies at call sites when the function has exactly one invocation
+- **extract** - Extracts functions with multiple invocations into shared bindings
+- **dead_code** - Eliminates declarations that have zero downstream references
+
+Rules are applied within the configured scope depth boundary. Nodes at depths exceeding the maximum are excluded from transformation to preserve deeply nested structural patterns.

@@ -1,3 +1,3 @@
 #!/bin/bash
 cd /app
-python3 /solution/repair_election.py
+python3 /solution/repair_rewriter.py

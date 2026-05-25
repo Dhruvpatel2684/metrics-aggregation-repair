@@ -1,34 +1,34 @@
 author_name = "Dhruvkumar Patel"
 author_email = "dhruvpatel2284@gmail.com"
-category = "Distributed Consensus"
+category = "Compiler Internals"
 difficulty = "hard"
-tags = ["raft", "consensus", "election", "state-machine", "reconciliation"]
+tags = ["ast", "code-transformation", "refactoring", "static-analysis", "rewriter"]
 
-difficulty_explanation = "Five interacting bugs across epoch boundary detection, voter identity resolution with aliasing, multi-phase reconciliation state management, deterministic merge ordering, and cached quorum invalidation create a dependency chain where fixes must be applied in awareness of their interactions."
-solution_explanation = "Fix off-by-one epoch boundary comparison, strip voter alias whitespace and remove fallback double-counting, reset reconciliation accumulator between phases, correct sort key field ordering for deterministic merges, and invalidate cached quorum after voter count changes."
-verification_explanation = "Tests validate epoch record distribution, voter participation ratios, reconciliation phase integrity, commitment manifest hash verification, and end-to-end quorum consistency across the full processing chain."
+difficulty_explanation = "Five interacting defects across rule loading, scope resolution, visitor state management, transformation ordering, and cached depth invalidation create a dependency chain requiring understanding of AST traversal and multi-pass compilation semantics."
+solution_explanation = "Fix rule list parsing to strip whitespace, correct config section for scope depth, reset symbol table between file passes, add rule_name to sort key for deterministic ordering, and invalidate cached scope depth after config fix."
+verification_explanation = "Tests validate rule count, scope depth, per-file transform counts, operation ordering, hash integrity, and cross-concern consistency requiring all defects to be fixed simultaneously."
 expert_time_estimate_hours = 3.5
 
 [task]
-name = "raft-election-repair"
-description = "A Raft consensus state machine reconciliation system that processes multi-epoch cluster events through propose and commit phases to produce deterministic reconciliation reports and commitment manifests."
+name = "ast-rewrite-repair"
+description = "An AST-based source code transformation engine that parses custom source files, applies configurable rewrite rules through scoped visitors, and produces deterministic transformation reports and rewrite manifests."
 
 [task.difficulty]
 level = "hard"
-reasoning = "Five interacting bugs form a dependency chain where Bug E only manifests after Bug B is fixed, and the hash-based verification requires all bugs to be fixed simultaneously for the hard tests to pass."
+reasoning = "Five interacting defects form a dependency chain where one only manifests after another is fixed, custom source format requires understanding the parser, and hash verification demands all issues fixed simultaneously."
 
 [task.runtime]
-entrypoint = "python3 -m runtime.run_election"
+entrypoint = "python3 -m runtime.run_rewriter"
 language = "python"
 dependencies = "stdlib-only"
 
 [task.validator]
 command = "bash tests/test.sh"
-description = "Runs the reconciliation system and validates output correctness"
+description = "Runs the AST rewriter and validates output correctness"
 
 [task.repair]
 command = "bash solution/solve.sh"
-description = "Patches the five interacting bugs and re-runs the system"
+description = "Patches the five interacting defects and re-runs the system"
 
 [task.resources]
 timeout = 300

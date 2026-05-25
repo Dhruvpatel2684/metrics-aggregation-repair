@@ -1,0 +1,7 @@
+{
+  "task_id": "task-ast-rewrite-repair",
+  "task_description": "Create a complete Harbor Terminal-Bench debugging task implementing an AST-based code transformation engine with 5 interacting bugs across rule loading, scope resolution, visitor state, transformation ordering, and cached depth invalidation.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}
