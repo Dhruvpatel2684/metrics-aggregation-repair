@@ -1,0 +1,102 @@
+[
+  {
+    "job_id": "job_021",
+    "name": "stream_ingest",
+    "resource_class": "cpu_bound",
+    "priority": 9,
+    "dependencies": [],
+    "cpu_cores": 4,
+    "memory_gb": 8,
+    "estimated_time_ms": 400
+  },
+  {
+    "job_id": "job_022",
+    "name": "event_dispatch",
+    "resource_class": "cpu_bound",
+    "priority": 10,
+    "dependencies": [],
+    "cpu_cores": 2,
+    "memory_gb": 4,
+    "estimated_time_ms": 200
+  },
+  {
+    "job_id": "job_023",
+    "name": "alert_evaluation",
+    "resource_class": "memory_bound",
+    "priority": 9,
+    "dependencies": ["job_021"],
+    "cpu_cores": 2,
+    "memory_gb": 8,
+    "estimated_time_ms": 350
+  },
+  {
+    "job_id": "job_024",
+    "name": "latency_monitor",
+    "resource_class": "cpu_bound",
+    "priority": 8,
+    "dependencies": [],
+    "cpu_cores": 1,
+    "memory_gb": 2,
+    "estimated_time_ms": 150
+  },
+  {
+    "job_id": "job_025",
+    "name": "throughput_tracker",
+    "resource_class": "memory_bound",
+    "priority": 8,
+    "dependencies": ["job_022"],
+    "cpu_cores": 2,
+    "memory_gb": 8,
+    "estimated_time_ms": 300
+  },
+  {
+    "job_id": "job_026",
+    "name": "anomaly_detector",
+    "resource_class": "memory_bound",
+    "priority": 10,
+    "dependencies": ["job_023"],
+    "cpu_cores": 4,
+    "memory_gb": 16,
+    "estimated_time_ms": 500
+  },
+  {
+    "job_id": "job_027",
+    "name": "health_check",
+    "resource_class": "io_bound",
+    "priority": 7,
+    "dependencies": [],
+    "cpu_cores": 1,
+    "memory_gb": 2,
+    "estimated_time_ms": 100
+  },
+  {
+    "job_id": "job_028",
+    "name": "failover_trigger",
+    "resource_class": "cpu_bound",
+    "priority": 10,
+    "dependencies": ["job_026"],
+    "cpu_cores": 2,
+    "memory_gb": 4,
+    "estimated_time_ms": 250
+  },
+  {
+    "job_id": "job_029",
+    "name": "sla_validator",
+    "resource_class": "io_bound",
+    "priority": 9,
+    "dependencies": ["job_024"],
+    "cpu_cores": 1,
+    "memory_gb": 4,
+    "estimated_time_ms": 450
+  },
+  {
+    "job_id": "job_030",
+    "name": "capacity_planner",
+    "resource_class": "cpu_bound",
+    "priority": 8,
+    "dependencies": ["job_025"],
+    "cpu_cores": 2,
+    "memory_gb": 8,
+    "estimated_time_ms": 600
+  }
+]

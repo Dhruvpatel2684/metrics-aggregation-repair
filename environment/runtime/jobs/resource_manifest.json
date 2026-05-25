@@ -1,0 +1,14 @@
+{
+  "available_resources": {
+    "cpu_cores": 16,
+    "memory_gb": 64,
+    "gpu_units": 4,
+    "io_slots": 100
+  },
+  "resource_class_defaults": {
+    "cpu_bound": {"cpu_cores": 2, "memory_gb": 4, "gpu_units": 0, "io_slots": 5},
+    "memory_bound": {"cpu_cores": 1, "memory_gb": 16, "gpu_units": 0, "io_slots": 10},
+    "io_bound": {"cpu_cores": 1, "memory_gb": 2, "gpu_units": 0, "io_slots": 25},
+    "gpu_bound": {"cpu_cores": 2, "memory_gb": 16, "gpu_units": 1, "io_slots": 5}
+  }
+}

@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "scheduling"
+difficulty = "hard"
+tags = ["task-scheduler", "resource-allocation", "dependency-resolution", "priority-queue", "python"]
+
+difficulty_explanation = "Four interacting defects across allocator, scheduler, executor, and resolver. Config space silently skips GPU job allocation. Wrong config section uses lenient preemption threshold. Round-based execution inflates timing. Missing sort field causes non-deterministic job ordering."
+
+solution_explanation = "Patches: (1) strip whitespace in allocator config parsing, (2) change scheduler config section to scheduling.realtime, (3) change executor accumulation from += to =, (4) add job_id to resolver sort key."
+
+verification_explanation = "Tests validate output files, job counts, allocations, GPU assignment, timing bounds, execution order, preemption config, preemptible count, and integrity hash."
+
+expert_time_estimate_hours = 3.0
+
+[task]
+name = "scheduler-repair"
+description = "Job scheduling system with four interacting defects in resource allocation, preemption configuration, execution timing, and dependency ordering"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Bugs span 4 files with cross-module data flow. Config space is invisible. Wrong config section requires reading comments in another file. Accumulation looks correct. Sort bug is data-dependent on specific job pair."
+
+[task.runtime]
+entrypoint = "python3 -m runtime.run_scheduler"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Validates job scheduling, resource allocation, preemption, and timing"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Patches 4 defects and re-runs scheduler"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"
