@@ -170,7 +170,6 @@ def test_slow_handshake_completion():
     allowing the connection to eventually confirm and complete.
     """
     states = load_connection_states()
-    report = load_recovery_report()
 
     assert "conn_005" in states, "conn_005 not found in output"
     conn = states["conn_005"]
@@ -178,9 +177,7 @@ def test_slow_handshake_completion():
     assert conn["state"] == "CLOSED", (
         f"conn_005 should be CLOSED (completed lifecycle), got {conn['state']}"
     )
-
-    # Verify conn_005 is not listed as having pool issues
-    leaked = report["pool_status"]["leaked_reservations"]
-    assert "conn_005" not in leaked, (
-        "conn_005 should not have a leaked reservation"
+    # A completed lifecycle means at least 5 transitions (open, syn, ack, fin, close)
+    assert conn["transitions_count"] >= 5, (
+        f"conn_005 should have at least 5 transitions, got {conn['transitions_count']}"
     )

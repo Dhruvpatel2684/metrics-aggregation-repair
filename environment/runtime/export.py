@@ -10,10 +10,10 @@ import os
 def compute_state_hash(connections):
     """
     Compute a SHA-256 hash of the connection state data for integrity verification.
-    Iterates over connection entries to build the hash input.
+    Iterates over connection entries in sorted order to build the hash input.
     """
     hasher = hashlib.sha256()
-    for conn_id, conn in connections.items():
+    for conn_id, conn in sorted(connections.items()):
         entry = f"{conn_id}:{conn.state}:{conn.transitions_count}"
         hasher.update(entry.encode("utf-8"))
     return hasher.hexdigest()

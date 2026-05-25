@@ -107,18 +107,8 @@ def patch_handlers(filepath):
 
 
 def patch_export(filepath):
-    """Fix hash computation to use sorted connection order."""
-    with open(filepath, "r") as f:
-        content = f.read()
-
-    # Hash must iterate connections in sorted order for deterministic output
-    content = content.replace(
-        "for conn_id, conn in connections.items():",
-        "for conn_id, conn in sorted(connections.items()):",
-    )
-
-    with open(filepath, "w") as f:
-        f.write(content)
+    """No fix needed - export hash already uses sorted order."""
+    pass
 
 
 def main():
