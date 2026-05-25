@@ -52,7 +52,7 @@ directory. Each query produces a `{query_id}_result.json` file and a combined
 
 ## Configuration
 
-The engine configuration in `config/engine.ini` controls:
+The engine configuration in `/app/runtime/config/engine.ini` controls:
 
 - **Partition size**: Tables are processed in chunks of `partition_size` rows
 - **Join methods**: Available join strategies (hash_join, nested_loop, sort_merge)
