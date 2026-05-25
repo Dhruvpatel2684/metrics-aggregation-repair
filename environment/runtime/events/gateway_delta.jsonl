@@ -1,0 +1,11 @@
+{"conn_id": "conn_007", "event_type": "ACTIVE_OPEN", "timestamp": "2024-01-15T10:00:07.000Z", "seq": 1, "metadata": {"src_port": 55100, "dst_port": 3306}}
+{"conn_id": "conn_007", "event_type": "SYN_ACK_RECV", "timestamp": "2024-01-15T10:00:07.200Z", "seq": 2, "metadata": {}}
+{"conn_id": "conn_007", "event_type": "FIN_RECV", "timestamp": "2024-01-15T10:00:30.000Z", "seq": 3, "metadata": {}}
+{"conn_id": "conn_007", "event_type": "FIN_SENT", "timestamp": "2024-01-15T10:00:30.500Z", "seq": 4, "metadata": {}}
+{"conn_id": "conn_007", "event_type": "ACK_RECV", "timestamp": "2024-01-15T10:00:31.000Z", "seq": 5, "metadata": {}}
+{"conn_id": "conn_008", "event_type": "PASSIVE_OPEN", "timestamp": "2024-01-15T10:00:08.000Z", "seq": 6, "metadata": {"listen_port": 5432}}
+{"conn_id": "conn_008", "event_type": "SYN_RECV", "timestamp": "2024-01-15T10:00:08.500Z", "seq": 7, "metadata": {}}
+{"conn_id": "conn_008", "event_type": "ACK_RECV", "timestamp": "2024-01-15T10:00:09.000Z", "seq": 8, "metadata": {}}
+{"conn_id": "conn_008", "event_type": "FIN_RECV", "timestamp": "2024-01-15T10:00:40.000Z", "seq": 9, "metadata": {}}
+{"conn_id": "conn_008", "event_type": "FIN_SENT", "timestamp": "2024-01-15T10:00:40.500Z", "seq": 10, "metadata": {}}
+{"conn_id": "conn_008", "event_type": "ACK_RECV", "timestamp": "2024-01-15T10:00:41.000Z", "seq": 11, "metadata": {}}

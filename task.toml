@@ -1,0 +1,40 @@
+author_name = "Dhruvkumar Patel"
+author_email = "dhruvpatel2284@gmail.com"
+category = "networking"
+difficulty = "hard"
+tags = ["tcp", "state-machine", "connection-pool", "networking", "protocol"]
+
+difficulty_explanation = "Five interacting defects spread across sequencer, handlers, event processor, reconciler, and export modules. Each bug is semantically embedded in correct-looking code (sort key missing a tiebreaker field, leading space in config-parsed set membership, cumulative vs assignment in batch snapshot accounting, wrong config section name for timeout, dict iteration order vs sorted order in hash computation). Partial fixes cascade into new failures due to cross-module data dependencies."
+
+solution_explanation = "The repair patches 5 locations: (1) sort key adds source name for deterministic ordering, (2) strips whitespace from comma-split config values, (3) changes reconciler accumulation from += to =, (4) changes config section for reservation timeout from 'pool' to 'pool.extended', (5) sorts dict keys before hash computation."
+
+verification_explanation = "Tests validate all connections reach CLOSED, transition counts within bounds, pool fully released, zero anomalies, integrity hash consistency, specific connection lifecycles (conn_006 passive close, conn_005 slow handshake), and correct half-close state sequencing."
+
+expert_time_estimate_hours = 3.5
+
+[task]
+name = "connection-state-recovery"
+description = "TCP connection state recovery system with five semantically-embedded defects across sort ordering, config parsing, batch accumulation, timeout configuration, and hash computation"
+
+[task.difficulty]
+level = "hard"
+reasoning = "Bugs are not structurally identifiable — code looks correct in isolation. Requires tracing specific data values through the multi-module processing chain to identify where semantic assumptions fail."
+
+[task.runtime]
+entrypoint = "python3 -m runtime.run_recovery"
+language = "python"
+dependencies = "stdlib-only"
+
+[task.validator]
+command = "bash tests/test.sh"
+description = "Validates connection lifecycle completion, pool accounting, anomaly detection, and export integrity"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Patches 5 semantic defects across 5 source files and re-runs recovery"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"

@@ -1,0 +1,13 @@
+{"conn_id": "conn_001", "event_type": "ACTIVE_OPEN", "timestamp": "2024-01-15T10:00:01.000Z", "seq": 1, "metadata": {"src_port": 44100, "dst_port": 443}}
+{"conn_id": "conn_001", "event_type": "SYN_ACK_RECV", "timestamp": "2024-01-15T10:00:01.250Z", "seq": 2, "metadata": {}}
+{"conn_id": "conn_002", "event_type": "ACTIVE_OPEN", "timestamp": "2024-01-15T10:00:02.000Z", "seq": 3, "metadata": {"src_port": 44200, "dst_port": 80}}
+{"conn_id": "conn_002", "event_type": "SYN_ACK_RECV", "timestamp": "2024-01-15T10:00:02.300Z", "seq": 4, "metadata": {}}
+{"conn_id": "conn_001", "event_type": "FIN_SENT", "timestamp": "2024-01-15T10:00:10.000Z", "seq": 5, "metadata": {}}
+{"conn_id": "conn_001", "event_type": "ACK_RECV", "timestamp": "2024-01-15T10:00:10.500Z", "seq": 6, "metadata": {}}
+{"conn_id": "conn_001", "event_type": "FIN_RECV", "timestamp": "2024-01-15T10:00:11.000Z", "seq": 7, "metadata": {}}
+{"conn_id": "conn_001", "event_type": "TIMEOUT", "timestamp": "2024-01-15T10:00:41.000Z", "seq": 8, "metadata": {"reason": "time_wait_expiry"}}
+{"conn_id": "conn_002", "event_type": "FIN_SENT", "timestamp": "2024-01-15T10:00:15.000Z", "seq": 9, "metadata": {}}
+{"conn_id": "conn_002", "event_type": "ACK_RECV", "timestamp": "2024-01-15T10:00:15.500Z", "seq": 10, "metadata": {}}
+{"conn_id": "conn_002", "event_type": "FIN_RECV", "timestamp": "2024-01-15T10:00:16.000Z", "seq": 11, "metadata": {}}
+{"conn_id": "conn_002", "event_type": "TIMEOUT", "timestamp": "2024-01-15T10:00:46.000Z", "seq": 12, "metadata": {"reason": "time_wait_expiry"}}
+{"conn_id": "conn_006", "event_type": "SYN_RECV", "timestamp": "2024-01-15T10:00:07.500Z", "seq": 13, "metadata": {"note": "multi-path syn delivery"}}

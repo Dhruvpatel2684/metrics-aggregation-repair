@@ -1,0 +1,10 @@
+{"conn_id": "conn_005", "event_type": "PASSIVE_OPEN", "timestamp": "2024-01-15T10:00:04.500Z", "seq": 1, "metadata": {"listen_port": 7070}}
+{"conn_id": "conn_005", "event_type": "SYN_RECV", "timestamp": "2024-01-15T10:00:04.800Z", "seq": 2, "metadata": {}}
+{"conn_id": "conn_005", "event_type": "ACK_RECV", "timestamp": "2024-01-15T10:00:29.500Z", "seq": 3, "metadata": {"note": "slow handshake 25s"}}
+{"conn_id": "conn_005", "event_type": "FIN_RECV", "timestamp": "2024-01-15T10:00:50.000Z", "seq": 4, "metadata": {}}
+{"conn_id": "conn_005", "event_type": "FIN_SENT", "timestamp": "2024-01-15T10:00:50.500Z", "seq": 5, "metadata": {}}
+{"conn_id": "conn_005", "event_type": "ACK_RECV", "timestamp": "2024-01-15T10:00:51.000Z", "seq": 6, "metadata": {}}
+{"conn_id": "conn_006", "event_type": "PASSIVE_OPEN", "timestamp": "2024-01-15T10:00:06.000Z", "seq": 7, "metadata": {"listen_port": 9090}}
+{"conn_id": "conn_006", "event_type": "FIN_RECV", "timestamp": "2024-01-15T10:00:35.000Z", "seq": 8, "metadata": {}}
+{"conn_id": "conn_006", "event_type": "FIN_SENT", "timestamp": "2024-01-15T10:00:35.500Z", "seq": 9, "metadata": {}}
+{"conn_id": "conn_006", "event_type": "ACK_RECV", "timestamp": "2024-01-15T10:00:36.000Z", "seq": 10, "metadata": {}}
