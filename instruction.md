@@ -59,7 +59,7 @@ Each line is a JSON record with fields:
 | `state_distribution` | object | Count per final state |
 | `pool_state` | object | Pool accounting (active_slots, reserved, confirmed, released) |
 | `anomalies` | array | Detected anomalies (should be empty) |
-| `transition_totals` | object | Per-connection transition counts |
+| `transition_counts` | object | Per-connection transition counts |
 | `batch_count` | integer | Number of processing batches |
 
 ## Key Files
