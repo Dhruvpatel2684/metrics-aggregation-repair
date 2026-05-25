@@ -65,6 +65,7 @@ class ResultSorter:
 
                 key_parts.append(sort_val)
 
+            # Tiebreaker: row_index reflects position within the processing partition
             key_parts.append(item["row_index"])
             return tuple(key_parts)
 
