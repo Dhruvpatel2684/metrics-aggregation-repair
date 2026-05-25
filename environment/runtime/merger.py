@@ -1,52 +1,23 @@
-"""Event merger for distributed Raft cluster nodes.
-
-Merges and orders election events and log entries from multiple
-cluster nodes into a single deterministic sequence.
-"""
+"""Deterministic merge ordering for multi-stream log entries."""
 
 
-def merge_events(all_events):
-    """Merge events from multiple nodes into deterministic order.
+def merge_and_deduplicate(all_entries):
+    """Merge log entries from multiple streams into deterministic order.
 
-    Events are sorted to produce a consistent ordering across all
-    cluster nodes for the committed entries manifest.
+    Entries are sorted by a composite key to ensure reproducible
+    output across runs. Deduplication uses the idx field to remove
+    duplicate entries that appear in multiple streams.
     """
-    # Note: term is local to each election cycle
-    merged = sorted(all_events, key=lambda e: (e["timestamp"], e["term"]))
+    log_entries = [e for e in all_entries if e.get("type") == "log"]
 
-    # Deduplicate entries with same index from different sources
-    seen_indices = set()
-    unique_events = []
+    seen_idx = set()
+    unique = []
+    for entry in log_entries:
+        idx = entry.get("idx")
+        if idx not in seen_idx:
+            seen_idx.add(idx)
+            unique.append(entry)
 
-    for event in merged:
-        if event.get("type") == "log_entry":
-            idx = event.get("index")
-            if idx is not None and idx in seen_indices:
-                continue
-            if idx is not None:
-                seen_indices.add(idx)
-        unique_events.append(event)
+    unique.sort(key=lambda entry: (entry["ts"], entry["term"], entry["nid"]))
 
-    return unique_events
-
-
-def merge_log_entries(all_entries):
-    """Merge committed log entries from multiple sources.
-
-    Produces a deterministically ordered list of committed entries
-    for the final manifest.
-    """
-    # Note: term is local to each election cycle
-    sorted_entries = sorted(all_entries, key=lambda e: (e["timestamp"], e["term"]))
-
-    # Deduplicate by index
-    seen = set()
-    result = []
-    for entry in sorted_entries:
-        idx = entry.get("index")
-        if idx in seen:
-            continue
-        seen.add(idx)
-        result.append(entry)
-
-    return result
+    return unique

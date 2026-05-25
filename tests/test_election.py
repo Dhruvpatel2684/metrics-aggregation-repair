@@ -1,9 +1,6 @@
-"""Tests for the Raft election verification system.
+"""Validation suite for Raft election reconciliation system."""
 
-Validates cluster health reports and committed entry manifests
-produced by the election verification system.
-"""
-
+import hashlib
 import json
 import os
 
@@ -11,131 +8,93 @@ import pytest
 
 
 OUTPUT_DIR = "/app/runtime/output"
-HEALTH_PATH = os.path.join(OUTPUT_DIR, "cluster_health.json")
-ENTRIES_PATH = os.path.join(OUTPUT_DIR, "committed_entries.json")
+STATE_FILE = os.path.join(OUTPUT_DIR, "reconciliation_state.json")
+MANIFEST_FILE = os.path.join(OUTPUT_DIR, "commitment_manifest.json")
 
 
-def load_health():
-    with open(HEALTH_PATH) as f:
+def load_state():
+    with open(STATE_FILE, "r") as f:
         return json.load(f)
 
 
-def load_entries():
-    with open(ENTRIES_PATH) as f:
+def load_manifest():
+    with open(MANIFEST_FILE, "r") as f:
         return json.load(f)
-
-
-# --- EASY TESTS (pass with buggy code) ---
 
 
 class TestEasy:
+    """Basic structural validation - should always pass."""
+
     def test_output_files_exist(self):
-        """Verify that both output files are created."""
-        assert os.path.isfile(HEALTH_PATH), "cluster_health.json not found"
-        assert os.path.isfile(ENTRIES_PATH), "committed_entries.json not found"
+        assert os.path.isfile(STATE_FILE), "reconciliation state output not found"
+        assert os.path.isfile(MANIFEST_FILE), "commitment manifest output not found"
 
-    def test_record_count_threshold(self):
-        """Verify committed entries has at least 3 entries."""
-        entries = load_entries()
-        assert len(entries) >= 3, "Expected at least 3 committed entries"
-
-    def test_json_structure_valid(self):
-        """Verify cluster_health.json has all required keys."""
-        health = load_health()
+    def test_reconciliation_state_structure(self):
+        state = load_state()
         required_keys = [
-            "cluster_id",
-            "total_nodes",
-            "active_voters",
-            "quorum_reached",
-            "leader_node",
-            "election_term",
-            "avg_heartbeat_ms",
-            "election_timeout_ms",
-            "committed_count",
+            "cluster_id", "total_nodes", "active_voters",
+            "quorum_reached", "quorum_size", "leader_node",
+            "current_epoch", "epoch_stats", "reconciliation",
+            "integrity_hash",
         ]
         for key in required_keys:
-            assert key in health, f"Missing required key: {key}"
+            assert key in state, f"missing required key in reconciliation state"
 
-    def test_output_directory_exists(self):
-        """Verify the output directory exists."""
-        assert os.path.isdir(OUTPUT_DIR), "Output directory does not exist"
+    def test_manifest_has_entries(self):
+        manifest = load_manifest()
+        assert "entries" in manifest, "manifest missing entries field"
+        assert len(manifest["entries"]) >= 5, "insufficient entries in commitment manifest"
 
-
-# --- MEDIUM TESTS (need 1-2 bug fixes) ---
+    def test_manifest_entry_fields(self):
+        manifest = load_manifest()
+        required_fields = ["index", "ts", "nid", "op", "phase", "term"]
+        for entry in manifest["entries"]:
+            for field in required_fields:
+                assert field in entry, "manifest entry missing required field"
 
 
 class TestMedium:
-    def test_voter_count_accuracy(self):
-        """Active voters must equal 4 (node1, node2, node3, node4)."""
-        health = load_health()
-        assert health["active_voters"] == 4, (
-            f"Expected 4 active voters but got {health['active_voters']}; "
-            "all nodes including node4 must be counted as valid voters"
-        )
+    """Reconciliation validation - requires partial bug fixes."""
 
-    def test_timeout_value_correctness(self):
-        """Election timeout must be 150ms from strict timing configuration."""
-        health = load_health()
-        assert health["election_timeout_ms"] == 150, (
-            f"Expected election_timeout_ms=150 but got {health['election_timeout_ms']}; "
-            "timeout should come from strict timing parameters"
-        )
+    def test_epoch_record_distribution(self):
+        state = load_state()
+        epoch_stats = state["epoch_stats"]
+        assert "5" in epoch_stats, "epoch 5 not present in stats"
+        count = epoch_stats["5"]["record_count"]
+        assert count == 15, "epoch record distribution does not match expected reconciliation state"
 
-    def test_individual_node_metrics(self):
-        """Votes from node4 must be counted toward quorum."""
-        health = load_health()
-        assert health["quorum_reached"] is True, "Quorum must be reached"
-        assert health["active_voters"] == 4, (
-            "All 4 voters must be recognized for correct quorum calculation"
-        )
+    def test_voter_participation(self):
+        state = load_state()
+        active = state["active_voters"]
+        assert active == 4, "voter participation does not match cluster configuration"
 
-
-# --- HARD TESTS (need 3-4 bug fixes) ---
+    def test_propose_phase_totals(self):
+        state = load_state()
+        propose = state["reconciliation"]["propose"]
+        assert propose["windows_processed"] == 10, "propose phase aggregation diverges from expected reconciliation state"
 
 
 class TestHard:
-    def test_committed_entries_ordering(self):
-        """Committed entries must be ordered by (timestamp, node_id, term)
-        for deterministic cluster consensus."""
-        entries = load_entries()
-        for i in range(1, len(entries)):
-            prev = entries[i - 1]
-            curr = entries[i]
-            prev_key = (prev["timestamp"], prev["node_id"], prev["term"])
-            curr_key = (curr["timestamp"], curr["node_id"], curr["term"])
-            assert prev_key <= curr_key, (
-                f"entries must be ordered by (timestamp, node_id, term) "
-                f"for deterministic cluster consensus: "
-                f"entry at position {i-1} {prev_key} should come before "
-                f"entry at position {i} {curr_key}"
-            )
+    """Full system validation - requires all bug fixes."""
 
-    def test_full_health_report_accuracy(self):
-        """All health report values must be correct after full repair."""
-        health = load_health()
-        assert health["active_voters"] == 4, (
-            f"active_voters should be 4, got {health['active_voters']}"
-        )
-        assert health["election_timeout_ms"] == 150, (
-            f"election_timeout_ms should be 150, got {health['election_timeout_ms']}"
-        )
-        assert health["committed_count"] == 12, (
-            f"committed_count should be 12, got {health['committed_count']}"
-        )
-        assert health["quorum_reached"] is True, "quorum_reached should be True"
-        assert health["cluster_id"] == "raft-cluster-7"
-        assert health["total_nodes"] == 4
-        assert health["leader_node"] == "node_alpha"
-        assert health["election_term"] == 6
+    def test_manifest_integrity_hash(self):
+        manifest = load_manifest()
+        entries = manifest["entries"]
+        canonical = json.dumps(entries, sort_keys=True, separators=(",", ":"))
+        computed_hash = hashlib.sha256(canonical.encode()).hexdigest()[:16]
+        assert computed_hash == manifest.get("manifest_hash"), "commitment manifest integrity check failed"
+        assert computed_hash == "89165d2226b9b18a", "commitment manifest integrity check failed"
 
-    def test_window_aggregation_values(self):
-        """Window ack_count values must reflect per-window totals,
-        not cumulative totals across windows."""
-        entries = load_entries()
-        ack_values = [e["ack_count"] for e in entries]
-        max_ack = max(ack_values)
-        assert max_ack <= 60, (
-            f"Maximum ack_count is {max_ack} which exceeds per-window maximum; "
-            "window aggregation should reflect per-window values, "
-            "not cumulative totals"
-        )
+    def test_reconciliation_state_integrity(self):
+        state = load_state()
+        to_hash = {k: v for k, v in state.items() if k != "integrity_hash"}
+        canonical = json.dumps(to_hash, sort_keys=True, separators=(",", ":"))
+        computed = hashlib.sha256(canonical.encode()).hexdigest()[:16]
+        assert computed == state["integrity_hash"], "reconciliation state diverges from expected deterministic output"
+        assert computed == "14b9eb341ff855f5", "reconciliation state diverges from expected deterministic output"
+
+    def test_quorum_consistency(self):
+        state = load_state()
+        assert state["quorum_reached"] is True, "quorum validation inconsistency detected"
+        assert state["quorum_size"] == 3, "quorum validation inconsistency detected"
+        assert state["active_voters"] == 4, "quorum validation inconsistency detected"

@@ -1,0 +1,25 @@
+{"ts":"2024-03-15T10:00:01.000Z","nid":"alpha","epoch":5,"type":"hb","acks":4,"lid":"alpha"}
+{"ts":"2024-03-15T10:00:02.000Z","nid":"alpha","epoch":5,"type":"hb","acks":3,"lid":"alpha"}
+{"ts":"2024-03-15T10:00:03.000Z","nid":"alpha","epoch":5,"type":"hb","acks":5,"lid":"alpha"}
+{"ts":"2024-03-15T10:00:04.000Z","nid":"alpha","epoch":5,"type":"hb","acks":4,"lid":"alpha"}
+{"ts":"2024-03-15T10:00:05.000Z","nid":"alpha","epoch":5,"type":"hb","acks":3,"lid":"alpha"}
+{"ts":"2024-03-15T10:00:06.000Z","nid":"alpha","epoch":5,"type":"hb","acks":5,"lid":"alpha"}
+{"ts":"2024-03-15T10:01:00.000Z","nid":"alpha","epoch":6,"type":"hb","acks":4,"lid":"alpha"}
+{"ts":"2024-03-15T10:01:01.000Z","nid":"alpha","epoch":6,"type":"hb","acks":3,"lid":"alpha"}
+{"ts":"2024-03-15T10:01:02.000Z","nid":"alpha","epoch":6,"type":"hb","acks":5,"lid":"alpha"}
+{"ts":"2024-03-15T10:01:03.000Z","nid":"alpha","epoch":6,"type":"hb","acks":4,"lid":"alpha"}
+{"ts":"2024-03-15T10:01:30.000Z","nid":"alpha","epoch":6,"type":"vote","voter":"node1","candidate":"alpha","granted":true}
+{"ts":"2024-03-15T10:01:31.000Z","nid":"alpha","epoch":6,"type":"vote","voter":"node2","candidate":"alpha","granted":true}
+{"ts":"2024-03-15T10:02:00.000Z","nid":"alpha","epoch":6,"type":"log","idx":1,"op":"SET x=1","term":6,"lid":"alpha"}
+{"ts":"2024-03-15T10:02:01.000Z","nid":"alpha","epoch":6,"type":"log","idx":2,"op":"SET y=2","term":6,"lid":"alpha"}
+{"ts":"2024-03-15T10:02:15.000Z","nid":"alpha","epoch":6,"type":"log","idx":3,"op":"DEL z","term":6,"lid":"alpha"}
+{"ts":"2024-03-15T10:02:16.000Z","nid":"alpha","epoch":6,"type":"log","idx":4,"op":"SET w=4","term":6,"lid":"alpha"}
+{"ts":"2024-03-15T10:03:00.000Z","nid":"alpha","epoch":7,"type":"hb","acks":5,"lid":"alpha"}
+{"ts":"2024-03-15T10:03:01.000Z","nid":"alpha","epoch":7,"type":"hb","acks":4,"lid":"alpha"}
+{"ts":"2024-03-15T10:03:02.000Z","nid":"alpha","epoch":7,"type":"hb","acks":3,"lid":"alpha"}
+{"ts":"2024-03-15T10:03:03.000Z","nid":"alpha","epoch":7,"type":"hb","acks":5,"lid":"alpha"}
+{"ts":"2024-03-15T10:03:10.000Z","nid":"alpha","epoch":7,"type":"vote","voter":"node1","candidate":"alpha","granted":true}
+{"ts":"2024-03-15T10:03:20.000Z","nid":"alpha","epoch":7,"type":"log","idx":13,"op":"SET a=10","term":7,"lid":"alpha"}
+{"ts":"2024-03-15T10:03:21.000Z","nid":"alpha","epoch":7,"type":"log","idx":14,"op":"SET b=20","term":7,"lid":"alpha"}
+{"ts":"2024-03-15T10:03:22.000Z","nid":"alpha","epoch":7,"type":"log","idx":15,"op":"DEL c","term":7,"lid":"alpha"}
+{"ts":"2024-03-15T10:03:23.000Z","nid":"alpha","epoch":7,"type":"log","idx":16,"op":"SET d=40","term":7,"lid":"alpha"}

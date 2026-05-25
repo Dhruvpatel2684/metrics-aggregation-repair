@@ -1,139 +1,133 @@
-"""Raft election verification system - main orchestrator.
+"""Main orchestrator for Raft election reconciliation system."""
 
-Processes cluster node data files to produce a health report
-and committed entries manifest.
-"""
-
+import configparser
 import json
 import os
 import sys
-import glob
-
-# Ensure proper import path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from runtime.voter import count_votes, get_active_voter_count, get_quorum_size
-from runtime.timer import get_election_timeout, validate_election_timing
-from runtime.log_replicator import replicate_logs
-from runtime.merger import merge_events, merge_log_entries
 
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "cluster.ini")
+def load_cluster_config():
+    config = configparser.ConfigParser()
+    config_path = os.path.join(os.path.dirname(__file__), "config", "cluster.ini")
+    config.read(config_path)
+    return config
 
 
-def load_node_data():
-    """Load all node data files from the data directory."""
+def load_stream_data():
+    """Load all JSONL stream files from the data directory."""
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
     all_records = []
-    pattern = os.path.join(DATA_DIR, "node_*.json")
 
-    for filepath in sorted(glob.glob(pattern)):
-        with open(filepath) as f:
-            records = json.load(f)
-            all_records.extend(records)
+    for filename in sorted(os.listdir(data_dir)):
+        if filename.endswith(".jsonl"):
+            filepath = os.path.join(data_dir, filename)
+            with open(filepath, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        all_records.append(json.loads(line))
 
     return all_records
 
 
-def load_cluster_config():
-    """Load cluster-level configuration."""
-    import configparser
-    config = configparser.ConfigParser()
-    config.read(CONFIG_PATH)
-    return config
+def build_commitment_entries(merged_logs, epoch_map, reconciliation_results):
+    """Build commitment manifest entries from merged log data."""
+    commit_acks = reconciliation_results["commit"]["total_acks"]
+    entries_committed = reconciliation_results["commit"]["entries_committed"]
 
-
-def build_cluster_health(records, config):
-    """Build the cluster health report."""
-    # Count votes
-    election_events = [r for r in records if r.get("type") == "election"]
-    vote_counts = count_votes(election_events)
-
-    # Determine leader (candidate with most votes)
-    leader = config.get("cluster", "leader_node") if not vote_counts else max(vote_counts, key=vote_counts.get)
-
-    # Get election term from latest election event
-    election_terms = [r.get("term", 0) for r in election_events]
-    current_term = max(election_terms) if election_terms else 0
-
-    # Calculate average heartbeat interval
-    heartbeats = [r for r in records if r.get("type") == "heartbeat"]
-    if len(heartbeats) >= 2:
-        from datetime import datetime
-        timestamps = sorted([datetime.fromisoformat(h["timestamp"].replace("Z", "+00:00")) for h in heartbeats])
-        deltas = [(timestamps[i+1] - timestamps[i]).total_seconds() * 1000 for i in range(len(timestamps)-1)]
-        avg_heartbeat = sum(deltas) / len(deltas) if deltas else 0.0
+    if entries_committed > 0:
+        base_ack = commit_acks // entries_committed
     else:
-        avg_heartbeat = 0.0
+        base_ack = 0
 
-    # Get timeout from timer module
-    timeout_ms = get_election_timeout()
+    entries = []
+    for log_entry in merged_logs:
+        entry_epoch = log_entry.get("epoch", 0)
+        entries.append({
+            "index": log_entry["idx"],
+            "ts": log_entry["ts"],
+            "nid": log_entry["nid"],
+            "term": log_entry["term"],
+            "op": log_entry["op"],
+            "phase": "commit",
+            "ack_count": base_ack,
+            "epoch": entry_epoch,
+        })
 
-    # Get voter info
-    active_voters = get_active_voter_count()
-    quorum = get_quorum_size()
-    total_votes = sum(vote_counts.values()) if vote_counts else 0
-
-    # Count committed entries
-    log_entries = [r for r in records if r.get("type") == "log_entry"]
-    committed_count = len(set(e.get("index") for e in log_entries))
-
-    return {
-        "cluster_id": config.get("cluster", "cluster_id"),
-        "total_nodes": config.getint("cluster", "total_nodes"),
-        "active_voters": active_voters,
-        "quorum_reached": total_votes >= quorum,
-        "leader_node": leader,
-        "election_term": current_term,
-        "avg_heartbeat_ms": round(avg_heartbeat, 2),
-        "election_timeout_ms": timeout_ms,
-        "committed_count": committed_count
-    }
-
-
-def build_committed_entries(records):
-    """Build the committed entries manifest."""
-    # Get committed entries from log replicator
-    committed = replicate_logs(records)
-
-    # Merge entries from all nodes using merger
-    merged = merge_log_entries(committed)
-
-    return merged
+    return entries
 
 
 def main():
-    """Run the election verification system."""
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-    records = load_node_data()
-    if not records:
-        print("ERROR: No node data found")
-        sys.exit(1)
+    from runtime import epoch_tracker
+    from runtime import registry
+    from runtime import reconciler
+    from runtime import merger
+    from runtime import consensus
+    from runtime import hasher
 
     config = load_cluster_config()
 
-    # Build health report
-    health = build_cluster_health(records, config)
+    all_records = load_stream_data()
 
-    # Build committed entries
-    committed = build_committed_entries(records)
+    epoch_config = epoch_tracker.load_epoch_config()
+    epoch_map = epoch_tracker.detect_epoch_boundaries(
+        all_records, epoch_config["boundary_threshold"]
+    )
 
-    # Write outputs
-    health_path = os.path.join(OUTPUT_DIR, "cluster_health.json")
-    with open(health_path, "w") as f:
-        json.dump(health, f, indent=2)
+    epoch_stats = epoch_tracker.get_epoch_stats(epoch_map)
 
-    entries_path = os.path.join(OUTPUT_DIR, "committed_entries.json")
-    with open(entries_path, "w") as f:
-        json.dump(committed, f, indent=2)
+    recon_config = reconciler.load_reconciliation_config()
+    reconciliation_results = reconciler.reconcile(
+        all_records, epoch_map, recon_config["window_size"]
+    )
 
-    print(f"Cluster health report: {health_path}")
-    print(f"Committed entries manifest: {entries_path}")
-    print(f"Active voters: {health['active_voters']}")
-    print(f"Election timeout: {health['election_timeout_ms']}ms")
-    print(f"Committed entries: {health['committed_count']}")
+    merged_logs = merger.merge_and_deduplicate(all_records)
+
+    vote_records = [r for r in all_records if r["type"] == "vote"]
+    valid_votes = registry.count_valid_votes(vote_records)
+    quorum_result = consensus.check_quorum(valid_votes)
+
+    current_epoch = max(int(e) for e in epoch_stats.keys())
+
+    commitment_entries = build_commitment_entries(
+        merged_logs, epoch_map, reconciliation_results
+    )
+
+    manifest_hash = hasher.hash_manifest(commitment_entries)
+
+    reconciliation_state = {
+        "cluster_id": config.get("cluster", "cluster_id"),
+        "total_nodes": int(config.get("cluster", "total_nodes")),
+        "active_voters": quorum_result["active_voters"],
+        "quorum_reached": quorum_result["quorum_reached"],
+        "quorum_size": quorum_result["quorum_size"],
+        "leader_node": config.get("cluster", "leader_node"),
+        "current_epoch": current_epoch,
+        "epoch_stats": epoch_stats,
+        "reconciliation": reconciliation_results,
+        "integrity_hash": "",
+    }
+
+    reconciliation_state["integrity_hash"] = hasher.hash_state(reconciliation_state)
+
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+    os.makedirs(output_dir, exist_ok=True)
+
+    state_path = os.path.join(output_dir, "reconciliation_state.json")
+    with open(state_path, "w") as f:
+        json.dump(reconciliation_state, f, indent=2)
+
+    manifest = {
+        "manifest_hash": manifest_hash,
+        "entries": commitment_entries,
+    }
+
+    manifest_path = os.path.join(output_dir, "commitment_manifest.json")
+    with open(manifest_path, "w") as f:
+        json.dump(manifest, f, indent=2)
+
+    print(f"Reconciliation complete. Epoch range: 5-{current_epoch}")
+    print(f"Output written to {output_dir}")
 
 
 if __name__ == "__main__":

@@ -1,83 +1,77 @@
-# Raft Election Verification System
+# Raft Election Reconciliation System
 
 ## Overview
 
-This system implements a Raft consensus election timer and log replication verification service. It processes node heartbeat logs, election events, and log entries from a distributed cluster to produce health reports and committed entry manifests.
-
-The runtime environment provides Global system-wide tooling including Python and pytest for verification.
+Global system-wide tooling for distributed consensus state reconciliation. This system processes multi-epoch cluster events from replicated data streams and produces deterministic reconciliation reports through propose and commit phases.
 
 ## Architecture
 
-The system reads heartbeat, election, and log replication data from multiple cluster nodes, validates election timing constraints, counts votes from registered voters, processes heartbeat acknowledgments in configurable windows, and merges results into a deterministic output.
+The reconciliation engine operates across several coordinated modules located under `/app/runtime/`:
 
-## Key Files
+- **Epoch Tracker** (`/app/runtime/epoch_tracker.py`): Detects epoch boundaries in the event stream and groups records into epoch buckets. Boundary detection uses a lookahead mechanism with configurable threshold to determine when records should transition between epoch groupings.
 
-- `/app/runtime/run_election.py` - Main entry point and orchestrator
-- `/app/runtime/voter.py` - Voter registry and vote counting
-- `/app/runtime/timer.py` - Election timeout management
-- `/app/runtime/log_replicator.py` - Heartbeat window processing and log replication
-- `/app/runtime/merger.py` - Deterministic event merging across nodes
-- `/app/runtime/config/cluster.ini` - Cluster configuration
-- `/app/runtime/data/node_alpha.json` - Node Alpha event data
-- `/app/runtime/data/node_beta.json` - Node Beta event data
-- `/app/runtime/data/node_gamma.json` - Node Gamma event data
-- `/app/runtime/output/cluster_health.json` - Generated health report
-- `/app/runtime/output/committed_entries.json` - Generated committed entries manifest
+- **Registry** (`/app/runtime/registry.py`): Manages voter identity resolution through alias mapping from configuration. The cluster configuration defines node aliases that map to canonical voter identifiers used in consensus validation.
 
-## Cluster Configuration
+- **Reconciler** (`/app/runtime/reconciler.py`): Implements two-phase reconciliation. Each reconciliation phase operates independently on its input window, processing heartbeat acknowledgment values into accumulated totals across configurable window sizes.
 
-The cluster has 4 active voting nodes: node1, node2, node3, and node4. The election timeout should be from the strict timing configuration (150ms). Heartbeat acknowledgments are processed in windows of configurable size.
+- **Merger** (`/app/runtime/merger.py`): Produces deterministic merge ordering of log entries from multiple data streams. Canonical ordering ensures reproducible commitment manifests across runs.
 
-## Running
+- **Consensus** (`/app/runtime/consensus.py`): Validates quorum state using the voter count from the registry. The majority strategy determines the required quorum threshold for election validity.
 
-```bash
-cd /app
+- **Hasher** (`/app/runtime/hasher.py`): Computes integrity hashes for output verification using canonical JSON serialization.
+
+## Data Format
+
+Input data resides in `/app/runtime/data/` as JSONL files (one JSON object per line). Each stream file contains records with abbreviated field names:
+
+- `ts`: ISO-8601 timestamp
+- `nid`: Node identifier
+- `epoch`: Epoch number
+- `type`: Record type (`hb` for heartbeat, `vote`, `log`)
+- Type-specific fields: `acks`, `voter`, `candidate`, `granted`, `idx`, `op`, `term`, `lid`
+
+## Configuration
+
+Cluster configuration at `/app/runtime/config/cluster.ini` defines:
+
+- Cluster identity and node topology
+- Voter alias mappings for identity resolution
+- Epoch boundary parameters
+- Reconciliation window sizing and phase definitions
+- Quorum strategy
+
+## Output
+
+The system produces two output files:
+
+### `/app/runtime/output/reconciliation_state.json`
+
+Contains the full reconciliation state including:
+- `cluster_id`: Cluster identifier
+- `total_nodes`: Total node count in cluster
+- `active_voters`: Number of registered voters resolved from configuration
+- `quorum_reached`: Boolean indicating if quorum threshold was met
+- `quorum_size`: Required votes for quorum
+- `leader_node`: Current leader identifier
+- `current_epoch`: Maximum epoch observed
+- `epoch_stats`: Per-epoch statistics with `record_count`, `hb_count`, `vote_count`, `log_count`
+- `reconciliation`: Phase results with `propose` and `commit` sub-objects containing `total_acks` and window/entry counts
+- `integrity_hash`: SHA-256 truncated hash of the state structure
+
+### `/app/runtime/output/commitment_manifest.json`
+
+Contains committed log entries with:
+- `manifest_hash`: Integrity hash of the entries array
+- `entries`: Ordered list of committed entries, each with `index`, `ts`, `nid`, `term`, `op`, `phase`, `ack_count`, `epoch`
+
+## Execution
+
+Run the system from `/app`:
+
+```
 python3 -m runtime.run_election
 ```
 
-This produces two output files in `/app/runtime/output/`.
-
-## Output Schema
-
-### /app/runtime/output/cluster_health.json
-
-| Field | Type | Description |
-|-------|------|-------------|
-| cluster_id | string | Unique cluster identifier |
-| total_nodes | integer | Total number of nodes in cluster |
-| active_voters | integer | Number of active voting nodes |
-| quorum_reached | boolean | Whether vote quorum was achieved |
-| leader_node | string | Current leader node identifier |
-| election_term | integer | Current election term number |
-| avg_heartbeat_ms | float | Average heartbeat interval in milliseconds |
-| election_timeout_ms | integer | Configured election timeout in milliseconds |
-| committed_count | integer | Number of committed log entries |
-
-### /app/runtime/output/committed_entries.json
-
-An array of committed log entries with the following fields:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| index | integer | Log entry index |
-| term | integer | Election term when entry was committed |
-| node_id | string | Node that originated the entry |
-| timestamp | string | ISO 8601 timestamp of the entry |
-| operation | string | The operation performed |
-| ack_count | integer | Acknowledgment count from heartbeat window |
-
-## Ordering and Determinism
-
-The correct sort order for committed entries is (timestamp, node_id, term) for deterministic ordering. This ensures that when multiple nodes produce entries at the same timestamp, the output is consistent regardless of input file ordering.
-
-## Window-Based Processing
-
-Heartbeat acknowledgments are processed in windows of a configured size. Each window's ack_count represents that window's aggregated value from the heartbeat records within it. Log entries use the ack_count from the most recent completed window as their replication confirmation value.
-
 ## Validation
 
-```bash
-bash /tests/test.sh
-```
-
-This runs the election verification system and validates output correctness using pytest.
+The validation suite checks structural correctness, epoch distribution accuracy, voter participation, reconciliation phase integrity, manifest hash consistency, and end-to-end quorum validation across the full processing chain.

@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-environment/runtime/output/cluster_health.json
-environment/runtime/output/committed_entries.json
+environment/runtime/output/reconciliation_state.json
+environment/runtime/output/commitment_manifest.json
 /logs/

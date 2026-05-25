@@ -2,20 +2,20 @@ author_name = "Dhruvkumar Patel"
 author_email = "dhruvpatel2284@gmail.com"
 category = "Distributed Consensus"
 difficulty = "hard"
-tags = ["raft", "consensus", "election", "distributed-systems", "log-replication"]
+tags = ["raft", "consensus", "election", "state-machine", "reconciliation"]
 
-difficulty_explanation = "Requires understanding Raft consensus protocol internals, config parsing edge cases, windowed aggregation semantics, and deterministic merge ordering across distributed nodes."
-solution_explanation = "Fix config parsing to strip whitespace from voter list, correct config section reference for election timeout, fix window accumulation to use last-write-wins, and add node_id to sort key for deterministic election event ordering."
-verification_explanation = "Tests validate cluster health report accuracy, committed entry manifest correctness, individual node vote counting, timeout calculations, window aggregation values, and merge ordering."
-expert_time_estimate_hours = 3.0
+difficulty_explanation = "Five interacting bugs across epoch boundary detection, voter identity resolution with aliasing, multi-phase reconciliation state management, deterministic merge ordering, and cached quorum invalidation create a dependency chain where fixes must be applied in awareness of their interactions."
+solution_explanation = "Fix off-by-one epoch boundary comparison, strip voter alias whitespace and remove fallback double-counting, reset reconciliation accumulator between phases, correct sort key field ordering for deterministic merges, and invalidate cached quorum after voter count changes."
+verification_explanation = "Tests validate epoch record distribution, voter participation ratios, reconciliation phase integrity, commitment manifest hash verification, and end-to-end quorum consistency across the full processing chain."
+expert_time_estimate_hours = 3.5
 
 [task]
 name = "raft-election-repair"
-description = "A Raft consensus election and log replication verification system that processes cluster node heartbeats, election events, and log entries to produce health reports and committed entry manifests."
+description = "A Raft consensus state machine reconciliation system that processes multi-epoch cluster events through propose and commit phases to produce deterministic reconciliation reports and commitment manifests."
 
 [task.difficulty]
 level = "hard"
-reasoning = "Four interacting bugs across config parsing, section references, windowed aggregation, and sort ordering require understanding of distributed consensus semantics."
+reasoning = "Five interacting bugs form a dependency chain where Bug E only manifests after Bug B is fixed, and the hash-based verification requires all bugs to be fixed simultaneously for the hard tests to pass."
 
 [task.runtime]
 entrypoint = "python3 -m runtime.run_election"
@@ -24,11 +24,11 @@ dependencies = "stdlib-only"
 
 [task.validator]
 command = "bash tests/test.sh"
-description = "Runs the election verification system and validates output with pytest"
+description = "Runs the reconciliation system and validates output correctness"
 
 [task.repair]
 command = "bash solution/solve.sh"
-description = "Patches the four bugs and re-runs the system to produce correct output"
+description = "Patches the five interacting bugs and re-runs the system"
 
 [task.resources]
 timeout = 300
