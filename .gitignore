@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-environment/runtime/output/reconciliation_state.json
-environment/runtime/output/commitment_manifest.json
+environment/runtime/output/transform_report.json
+environment/runtime/output/rewrite_manifest.json
 /logs/
