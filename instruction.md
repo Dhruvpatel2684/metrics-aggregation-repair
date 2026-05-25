@@ -66,15 +66,15 @@ Each line is a JSON record with fields:
 
 | File | Purpose |
 |------|---------|
-| `runtime/sequencer.py` | Loads and orders events from gateway files |
-| `runtime/handlers.py` | Processes events, manages connection state transitions |
-| `runtime/event_processor.py` | Batch processing orchestration, pool management |
-| `runtime/reconciler.py` | Validates results, computes statistics |
-| `runtime/export.py` | Writes output files with integrity verification |
-| `runtime/connection_pool.py` | Pool slot reservation and lifecycle |
-| `runtime/state_machine.py` | TCP state transition definitions |
-| `runtime/config/connections.ini` | Processing configuration parameters |
-| `runtime/events/` | Gateway event source files (read-only data) |
+| `/app/runtime/sequencer.py` | Loads and orders events from gateway files |
+| `/app/runtime/handlers.py` | Processes events, manages connection state transitions |
+| `/app/runtime/event_processor.py` | Batch processing orchestration, pool management |
+| `/app/runtime/reconciler.py` | Validates results, computes statistics |
+| `/app/runtime/export.py` | Writes output files with integrity verification |
+| `/app/runtime/connection_pool.py` | Pool slot reservation and lifecycle |
+| `/app/runtime/state_machine.py` | TCP state transition definitions |
+| `/app/runtime/config/connections.ini` | Processing configuration parameters |
+| `/app/runtime/events/` | Gateway event source files (read-only data) |
 
 ## Notes
 
