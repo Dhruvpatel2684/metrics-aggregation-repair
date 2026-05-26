@@ -3,19 +3,10 @@ import subprocess
 import os
 import sys
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "environment", "runtime", "output")
-RUNTIME_DIR = os.path.join(os.path.dirname(__file__), "..", "environment", "runtime")
+OUTPUT_DIR = "/app/runtime/output"
+RUNTIME_DIR = "/app/runtime"
 
 GOLDEN_HASH_PREFIX = "0c80d25ea7eb"
-
-
-def _run_resolver():
-    """Run the resolver and produce output files."""
-    subprocess.run(
-        [sys.executable, os.path.join(RUNTIME_DIR, "run_resolver.py")],
-        check=True,
-        cwd=RUNTIME_DIR,
-    )
 
 
 def _load_report():
@@ -26,9 +17,6 @@ def _load_report():
 def _load_manifest():
     with open(os.path.join(OUTPUT_DIR, "manifest.json")) as f:
         return json.load(f)
-
-
-_run_resolver()
 
 
 def test_output_files_exist():
