@@ -1,27 +1,42 @@
-"""Integrity hashing for compaction report verification.
-
-Produces a deterministic hash of the compaction report to detect
-any divergence in the processing state across system components.
 """
+Integrity hash computation for resolution output.
+
+Produces a deterministic SHA-256 digest over the resolution
+and manifest data to verify system-wide correctness.
+"""
+
 import hashlib
 import json
 
 
-def compute_integrity_hash(report_data):
-    """Compute SHA-256 integrity hash of the compaction report.
-    
-    Serializes the report to canonical JSON (sorted keys, no extra
-    whitespace) and returns the first 16 hex characters of the
-    SHA-256 digest.
-    
-    Args:
-        report_data: dict containing the compaction report fields
-    
-    Returns:
-        str: first 16 hex chars of SHA-256 hash
-    """
-    # Create canonical representation excluding the hash field itself
-    hashable = {k: v for k, v in report_data.items() if k != "integrity_hash"}
-    canonical = json.dumps(hashable, sort_keys=True, separators=(",", ":"))
-    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
-    return digest[:16]
+class IntegrityHasher:
+    """Computes integrity hash over resolution output data."""
+
+    def __init__(self):
+        self._hasher = hashlib.sha256()
+
+    def hash_report(self, report_data):
+        """
+        Compute hash over the resolution report structure.
+        Serializes with sorted keys for determinism.
+        """
+        canonical = json.dumps(report_data, sort_keys=True, separators=(",", ":"))
+        self._hasher.update(canonical.encode("utf-8"))
+
+    def hash_manifest(self, manifest_data):
+        """
+        Compute hash over the installation manifest.
+        Order-sensitive to capture install sequence.
+        """
+        canonical = json.dumps(manifest_data, sort_keys=False, separators=(",", ":"))
+        self._hasher.update(canonical.encode("utf-8"))
+
+    def finalize(self):
+        """Return the hex digest of all hashed data."""
+        return self._hasher.hexdigest()
+
+    @staticmethod
+    def quick_hash(data):
+        """One-shot hash of arbitrary JSON-serializable data."""
+        canonical = json.dumps(data, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()

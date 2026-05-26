@@ -1,30 +1,30 @@
 author_name = "Dhruvkumar Patel"
 author_email = "dhruvpatel2284@gmail.com"
-category = "Time-Series Databases"
+category = "Package Management"
 difficulty = "hard"
-tags = ["tsdb", "compaction", "retention", "downsampling", "time-series"]
+tags = ["dependency-resolution", "graph-algorithms", "topological-sort", "version-constraints", "package-management"]
 
-difficulty_explanation = "Five interacting defects across collector filtering, window alignment, tier-based rollup accumulation, sort ordering, and cached offset invalidation create a dependency chain requiring understanding of time-series compaction semantics and multi-tier retention processing."
-solution_explanation = "Fix collector list parsing to strip whitespace, correct config section for alignment offset, reset rollup accumulator between retention tiers, add collector_id to sort key for deterministic ordering, and invalidate cached alignment offset after config fix."
-verification_explanation = "Tests validate collector count, alignment offset, tier aggregation bounds, point ordering, hash integrity, and cross-concern consistency requiring all defects fixed simultaneously."
+difficulty_explanation = "Five interacting defects across cycle detection boundary logic, two-part registry source filtering, scorer state accumulation, installation ordering, and score field selection form a dependency chain requiring deep understanding of graph traversal semantics."
+solution_explanation = "Fix off-by-one comparison in cycle detection, strip whitespace and remove fallback matching in source filter, reset freshness cache between scoring passes, correct sort key for deterministic install order, and use composite score field instead of freshness."
+verification_explanation = "Tests validate source registry count, package resolution completeness, scoring pass independence, installation ordering determinism, cycle detection accuracy, integrity hash consistency, and cross-concern coherence."
 expert_time_estimate_hours = 3.5
 
 [task]
-name = "tsdb-compact-repair"
-description = "A time-series database compaction engine that processes high-frequency metric streams from multiple collectors, applies multi-tier retention policies with configurable window alignment, and produces deterministic compacted series data with integrity verification."
+name = "dep-graph-repair"
+description = "A package dependency resolution engine that performs topological graph traversal with version constraint satisfaction, cycle detection, and multi-registry source filtering to compute deterministic installation plans."
 
 [task.difficulty]
 level = "hard"
-reasoning = "Five interacting defects form a dependency chain where one only manifests after another is fixed, TSV data format requires understanding the parser, and hash verification demands all issues fixed simultaneously."
+reasoning = "Five interacting defects form a dependency chain where the cycle detection off-by-one removes a graph edge affecting downstream resolution, the source filter has a two-part fix requiring both whitespace stripping and fallback removal, and score field selection creates invisible data corruption."
 
 [task.runtime]
-entrypoint = "python3 -m runtime.run_compactor"
+entrypoint = "python3 -m runtime.run_resolver"
 language = "python"
 dependencies = "stdlib-only"
 
 [task.validator]
 command = "bash tests/test.sh"
-description = "Runs the compaction engine and validates output correctness"
+description = "Runs the resolver and validates output correctness"
 
 [task.repair]
 command = "bash solution/solve.sh"

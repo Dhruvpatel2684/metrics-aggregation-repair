@@ -1,0 +1,12 @@
+{"n":"int-deploy","v":"3.0.0","d":[{"n":"libsys","c":">=2.0.0"},{"n":"libnet","c":">=1.2.0"},{"n":"libcompress","c":">=1.0.0"}],"s":"internal"}
+{"n":"int-monitor","v":"2.1.0","d":[{"n":"metrics","c":">=1.0.0"},{"n":"liblog","c":">=1.0.0"},{"n":"msgbus","c":">=2.0.0"}],"s":"internal"}
+{"n":"int-secrets","v":"1.5.0","d":[{"n":"libcrypto","c":">=2.0.0"},{"n":"int-config","c":">=1.0.0"}],"s":"internal"}
+{"n":"int-gateway","v":"2.0.0","d":[{"n":"int-secrets","c":">=1.0.0"},{"n":"apigw","c":">=2.0.0"},{"n":"ratelimit","c":">=1.0.0"}],"s":"internal"}
+{"n":"int-pipeline","v":"1.3.0","d":[{"n":"taskqueue","c":">=1.0.0"},{"n":"scheduler","c":">=1.0.0"},{"n":"int-monitor","c":">=2.0.0"}],"s":"internal"}
+{"n":"int-config","v":"1.0.0","d":[{"n":"int-deploy","c":">=2.0.0"},{"n":"libjson","c":">=2.0.0"},{"n":"libio","c":">=1.0.0"}],"s":"internal"}
+{"n":"int-mesh","v":"2.2.0","d":[{"n":"libnet","c":">=1.2.0"},{"n":"int-config","c":">=1.0.0"},{"n":"msgbus","c":">=2.0.0"}],"s":"internal"}
+{"n":"int-storage","v":"1.4.0","d":[{"n":"datastore","c":">=2.0.0"},{"n":"libcompress","c":">=1.0.0"},{"n":"int-config","c":">=1.0.0"}],"s":"internal"}
+{"n":"int-auth-ext","v":"1.0.0","d":[{"n":"int-secrets","c":">=1.0.0"},{"n":"session-mgr","c":">=1.0.0"},{"n":"libauth","c":">=1.0.0"}],"s":"internal"}
+{"n":"int-notifier","v":"1.2.0","d":[{"n":"msgbus","c":">=2.0.0"},{"n":"templating","c":">=1.0.0"},{"n":"int-config","c":">=1.0.0"}],"s":"internal"}
+{"n":"infradev-ci","v":"1.0.0","d":[{"n":"int-deploy","c":">=2.0.0"},{"n":"libsys","c":">=2.0.0"}],"s":"infradev"}
+{"n":"infradev-bench","v":"0.9.0","d":[{"n":"metrics","c":">=1.0.0"},{"n":"liblog","c":">=1.0.0"}],"s":"infradev"}
