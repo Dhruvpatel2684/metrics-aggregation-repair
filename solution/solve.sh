@@ -1,2 +1,3 @@
 #!/bin/bash
-cd /app && python3 /solution/repair_resolver.py
+cd /app
+python3 /solution/repair_resolver.py

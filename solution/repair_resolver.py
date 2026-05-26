@@ -1,119 +1,106 @@
-"""
-Repair script for the dependency resolution system.
-
-Applies targeted patches to fix five interacting defects:
-A) Off-by-one in cycle detection back-edge boundary
-B) Source filter alias parsing (strip) and fallback removal
-C) Scorer freshness cache not reset between registry passes
-D) Installation order sort key missing package name
-E) Resolver using wrong score field for manifest entries
-"""
-
+"""Repair script for dep-graph-repair task."""
 import os
+import shutil
 import subprocess
 import sys
 
+RUNTIME = "/app/runtime"
 
-def patch_file(filepath, replacements):
-    """Apply string replacements to a file."""
-    with open(filepath, "r") as f:
+
+def patch(path, old, new):
+    with open(path) as f:
         content = f.read()
-    for old, new in replacements:
-        if old not in content:
-            print(f"WARNING: Pattern not found in {filepath}: {old[:50]}...")
-            continue
-        content = content.replace(old, new, 1)
-    with open(filepath, "w") as f:
+    content = content.replace(old, new)
+    with open(path, "w") as f:
         f.write(content)
-    print(f"Patched: {filepath}")
+
+
+def fix_source_filter():
+    """Fix A: strip aliases + remove fallback matching."""
+    path = os.path.join(RUNTIME, "source_filter.py")
+    # Strip aliases
+    patch(path,
+        '    pairs = raw.split(",")\n'
+        '    aliases = {}\n'
+        '    for pair in pairs:\n'
+        '        parts = pair.split(":")\n'
+        '        if len(parts) == 2:\n'
+        '            alias = parts[0]\n'
+        '            short = parts[1]\n'
+        '            aliases[alias] = short',
+        '    pairs = raw.split(",")\n'
+        '    aliases = {}\n'
+        '    for pair in pairs:\n'
+        '        parts = pair.strip().split(":")\n'
+        '        if len(parts) == 2:\n'
+        '            alias = parts[0].strip()\n'
+        '            short = parts[1].strip()\n'
+        '            aliases[alias] = short')
+    # Remove fallback
+    patch(path,
+        '    for registered in source_set:\n'
+        '        if source_name.startswith(registered.strip()[:3]):\n'
+        '            return True\n'
+        '\n'
+        '    return False',
+        '    return False')
+
+
+def fix_cycle_detector():
+    """Fix B+E: correct config section and bypass cache."""
+    path = os.path.join(RUNTIME, "cycle_detector.py")
+    # Fix config section
+    patch(path,
+        'return config.getint("traversal", "max_ancestors")',
+        'return config.getint("traversal.bounded", "max_ancestors")')
+    # Fix cache bypass
+    patch(path,
+        '    return _cached_threshold',
+        '    return _compute_threshold()')
+
+
+def fix_scorer():
+    """Fix C: reset accumulator between scoring passes."""
+    path = os.path.join(RUNTIME, "scorer.py")
+    patch(path,
+        '        source_scores = {}\n'
+        '        total_freshness = 0.0\n'
+        '        total_count = 0',
+        '        self._score_accumulator = {}\n'
+        '        source_scores = {}\n'
+        '        total_freshness = 0.0\n'
+        '        total_count = 0')
+
+
+def fix_resolver():
+    """Fix D: correct sort key for deterministic ordering."""
+    path = os.path.join(RUNTIME, "resolver.py")
+    patch(path,
+        'items.sort(key=lambda x: (-x["depth"], x["version"]))',
+        'items.sort(key=lambda x: (-x["depth"], x["name"], x["version"]))')
 
 
 def main():
-    base = "/app/runtime"
+    fix_source_filter()
+    fix_cycle_detector()
+    fix_scorer()
+    fix_resolver()
 
-    # Bug A: Off-by-one in cycle detection boundary
-    # >= causes false positive back-edge detection, should be >
-    patch_file(
-        os.path.join(base, "cycle_detector.py"),
-        [
-            (
-                "if stack_depth >= self._ancestor_count:",
-                "if stack_depth > self._ancestor_count:",
-            ),
-        ],
-    )
+    # Clear bytecode
+    for root, dirs, _ in os.walk(RUNTIME):
+        for d in dirs:
+            if d == "__pycache__":
+                shutil.rmtree(os.path.join(root, d))
 
-    # Bug B Part 1: Strip whitespace in alias parsing
-    patch_file(
-        os.path.join(base, "source_filter.py"),
-        [
-            (
-                "                mapping[source] = alias.strip()",
-                "                mapping[source.strip()] = alias.strip()",
-            ),
-        ],
-    )
-
-    # Bug B Part 2: Remove fallback prefix matching
-    patch_file(
-        os.path.join(base, "source_filter.py"),
-        [
-            (
-                """        for registered, alias in self._alias_map.items():
-            if source_name.startswith(alias[:2]):
-                return True
-
-        return False""",
-                "        return False",
-            ),
-        ],
-    )
-
-    # Bug C: Reset freshness cache between scoring passes
-    patch_file(
-        os.path.join(base, "scorer.py"),
-        [
-            (
-                '        for pkg in packages:\n            name = pkg["n"]',
-                '        self._freshness_cache = {}\n        for pkg in packages:\n            name = pkg["n"]',
-            ),
-        ],
-    )
-
-    # Bug D: Sort key needs package name for deterministic ordering
-    patch_file(
-        os.path.join(base, "resolver.py"),
-        [
-            (
-                'items.sort(key=lambda x: (-x["depth"], x["version"]))',
-                'items.sort(key=lambda x: (-x["depth"], x["name"], x["version"]))',
-            ),
-        ],
-    )
-
-    # Bug E: Wrong score field - should use composite, not freshness
-    patch_file(
-        os.path.join(base, "resolver.py"),
-        [
-            (
-                'score_entry.get("freshness", 0.0)',
-                'score_entry.get("composite", 0.0)',
-            ),
-        ],
-    )
-
-    # Re-run the resolver to generate corrected output
-    print("\nRe-running resolver with patches applied...")
     result = subprocess.run(
         [sys.executable, "-m", "runtime.run_resolver"],
-        cwd="/app",
-        capture_output=True,
-        text=True,
+        cwd="/app", capture_output=True, text=True
     )
+    if result.returncode != 0:
+        print(f"Error: {result.stderr}", file=sys.stderr)
+        sys.exit(1)
     print(result.stdout)
-    if result.stderr:
-        print(f"STDERR: {result.stderr}", file=sys.stderr)
-    sys.exit(result.returncode)
+    print("All fixes applied successfully.")
 
 
 if __name__ == "__main__":

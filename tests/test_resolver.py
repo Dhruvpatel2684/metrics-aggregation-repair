@@ -1,167 +1,130 @@
-"""
-Validation tests for the dependency resolution system.
-
-Tests are ordered by difficulty:
-- Easy (1-4): Structure and basic output validation
-- Medium (5-7): Semantic correctness checks
-- Hard (8-10): Cross-concern integrity verification
-"""
-
+"""Validation suite for dependency graph resolution engine."""
+import hashlib
 import json
 import os
-import subprocess
-import sys
 
 import pytest
-
 
 REPORT_PATH = "/app/runtime/output/resolution_report.json"
 MANIFEST_PATH = "/app/runtime/output/install_manifest.json"
 
 
-@pytest.fixture(scope="session", autouse=True)
-def run_resolver():
-    """Execute the resolver before running tests."""
-    result = subprocess.run(
-        [sys.executable, "-m", "runtime.run_resolver"],
-        cwd="/app",
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        print(f"STDERR: {result.stderr}", file=sys.stderr)
-    yield result
+def load_report():
+    with open(REPORT_PATH) as f:
+        return json.load(f)
 
 
-class TestEasyStructure:
-    """Basic structural validation - always passes if system runs."""
+def load_manifest():
+    with open(MANIFEST_PATH) as f:
+        return json.load(f)
+
+
+class TestStructural:
+    """Basic structural validation - always passes."""
 
     def test_output_files_exist(self):
-        """Both output files must be written."""
-        assert os.path.isfile(REPORT_PATH), (
-            f"Resolution report not found at {REPORT_PATH}")
-        assert os.path.isfile(MANIFEST_PATH), (
-            f"Installation manifest not found at {MANIFEST_PATH}")
+        """Verify both output files are generated."""
+        assert os.path.isfile(REPORT_PATH), "resolution report not found"
+        assert os.path.isfile(MANIFEST_PATH), "install manifest not found"
 
-    def test_report_structure(self):
-        """Report must contain required top-level sections."""
-        with open(REPORT_PATH) as f:
-            report = json.load(f)
-        assert "metadata" in report
-        assert "scores" in report
-        meta = report["metadata"]
-        required_fields = [
-            "total_packages", "source_count", "registries_processed",
-            "removed_cycles", "max_depth", "scoring_passes",
-            "integrity_hash"
+    def test_report_required_keys(self):
+        """Verify report contains all required fields."""
+        report = load_report()
+        required = [
+            "engine_id", "strategy", "ancestor_threshold",
+            "active_sources", "packages_available", "packages_resolved",
+            "install_order_length", "scoring", "integrity_hash",
         ]
-        for field in required_fields:
-            assert field in meta, f"Missing metadata field: {field}"
+        for key in required:
+            assert key in report, f"missing field: {key}"
 
     def test_manifest_structure(self):
-        """Manifest must contain required sections."""
-        with open(MANIFEST_PATH) as f:
-            manifest = json.load(f)
+        """Verify manifest has install_order with entries."""
+        manifest = load_manifest()
         assert "install_order" in manifest
-        assert "total_install_count" in manifest
-        assert "integrity_hash" in manifest
-        assert isinstance(manifest["install_order"], list)
-        assert len(manifest["install_order"]) > 0
+        assert "manifest_hash" in manifest
+        assert len(manifest["install_order"]) >= 8
 
     def test_install_entry_fields(self):
-        """Each install entry must have required fields."""
-        with open(MANIFEST_PATH) as f:
-            manifest = json.load(f)
-        required = {"name", "version", "source", "depth", "score"}
+        """Verify each entry has required fields."""
+        manifest = load_manifest()
+        fields = ["name", "version", "source", "depth", "dep_count"]
         for entry in manifest["install_order"]:
-            missing = required - set(entry.keys())
-            assert not missing, (
-                f"Entry {entry.get('name', '?')} missing fields: {missing}")
+            for f in fields:
+                assert f in entry, f"entry missing field: {f}"
 
 
-class TestMediumSemantics:
-    """Semantic correctness - validates resolution logic."""
+class TestSemantic:
+    """Semantic validation requiring partial fixes."""
 
-    def test_source_registry_count(self):
-        """Resolution must process exactly 3 active registries."""
-        with open(REPORT_PATH) as f:
-            report = json.load(f)
-        registries = report["metadata"]["registries_processed"]
-        assert len(registries) == 3, (
-            f"Expected 3 active registries, got {len(registries)}: {registries}. "
-            f"Only alias-verified sources should pass the filter.")
+    def test_active_source_count(self):
+        """All configured sources must be active."""
+        report = load_report()
+        assert report["active_sources"] == 3, (
+            "source registry count diverges from expected configuration"
+        )
 
-    def test_package_resolution_count(self):
-        """Resolved package count must match filtered input."""
-        with open(MANIFEST_PATH) as f:
-            manifest = json.load(f)
-        count = manifest["total_install_count"]
-        assert count == 35, (
-            f"Expected 35 resolved packages, got {count}. "
-            f"Check source filtering for unverified registry leakage.")
+    def test_ancestor_threshold(self):
+        """Traversal threshold must use bounded configuration."""
+        report = load_report()
+        assert report["ancestor_threshold"] == 3, (
+            "ancestor threshold does not match bounded traversal parameters"
+        )
 
-    def test_scoring_pass_count(self):
-        """Scorer must execute exactly one pass per active registry."""
-        with open(REPORT_PATH) as f:
-            report = json.load(f)
-        passes = report["metadata"]["scoring_passes"]
-        assert passes == 3, (
-            f"Expected 3 scoring passes (one per registry), got {passes}. "
-            f"Non-active sources should not trigger scoring passes.")
+    def test_scoring_total_resolved(self):
+        """All resolved packages must be scored independently."""
+        report = load_report()
+        assert report["scoring"]["total_resolved"] == 18, (
+            "scoring total diverges from resolution count"
+        )
 
 
-class TestHardIntegrity:
-    """Cross-concern integrity - requires all components correct."""
+class TestConsistency:
+    """Cross-concern consistency requiring all fixes."""
 
-    def test_installation_order_determinism(self):
+    def test_install_order_deterministic(self):
+        """Install order must follow (depth desc, name asc, version asc).
+
+        Packages at the same depth must be ordered by name then version
+        to ensure deterministic installation plans.
         """
-        Install order must be deterministic: sorted by descending depth,
-        then ascending package name, then ascending version.
-        """
-        with open(MANIFEST_PATH) as f:
-            manifest = json.load(f)
-        order = manifest["install_order"]
-        for i in range(len(order) - 1):
-            curr = order[i]
-            nxt = order[i + 1]
+        manifest = load_manifest()
+        items = manifest["install_order"]
+        for i in range(len(items) - 1):
+            curr = items[i]
+            nxt = items[i + 1]
             curr_key = (-curr["depth"], curr["name"], curr["version"])
             nxt_key = (-nxt["depth"], nxt["name"], nxt["version"])
             assert curr_key <= nxt_key, (
-                f"Installation order violation at position {i}: "
-                f"{curr['name']}@{curr['version']} (depth={curr['depth']}) "
-                f"followed by "
-                f"{nxt['name']}@{nxt['version']} (depth={nxt['depth']}). "
-                f"Deterministic ordering requires depth-descending primary "
-                f"key with stable tiebreakers for same-depth entries.")
+                f"install order not deterministic at position {i}: "
+                f"({curr['name']}, depth={curr['depth']}) before "
+                f"({nxt['name']}, depth={nxt['depth']}); "
+                f"expected ordering: depth descending, then name, then version"
+            )
 
-    def test_cycle_detection_accuracy(self):
-        """No legitimate dependency edges should be flagged as cycles."""
-        with open(REPORT_PATH) as f:
-            report = json.load(f)
-        removed = report["metadata"]["removed_cycles"]
-        assert len(removed) == 0, (
-            f"Found {len(removed)} incorrectly removed edge(s): {removed}. "
-            f"The dependency graph contains no actual cycles. "
-            f"Check the back-edge boundary comparison logic.")
+    def test_integrity_hash(self):
+        """Report integrity hash must match computed canonical state."""
+        report = load_report()
+        hashable = {k: v for k, v in report.items() if k != "integrity_hash"}
+        canonical = json.dumps(hashable, sort_keys=True, separators=(",", ":"))
+        computed = hashlib.sha256(canonical.encode()).hexdigest()[:16]
+        assert computed == report["integrity_hash"], (
+            "integrity hash does not match report state"
+        )
+        assert computed == "33a7a2b85ee404c3", (
+            "resolution state diverges from expected canonical output"
+        )
 
-    def test_integrity_hash_consistency(self):
-        """
-        System-wide integrity hash must match expected value.
-        This validates that all resolution components produce
-        correct output simultaneously.
-        """
-        with open(REPORT_PATH) as f:
-            report = json.load(f)
-        with open(MANIFEST_PATH) as f:
-            manifest = json.load(f)
-        expected = "2f75e45807987551274aafd77bbf1e754593927d64051487da10183e6cccea37"
-        report_hash = report["metadata"]["integrity_hash"]
-        manifest_hash = manifest["integrity_hash"]
-        assert report_hash == manifest_hash, (
-            "Report and manifest integrity hashes do not match.")
-        assert report_hash == expected, (
-            f"Integrity hash mismatch. "
-            f"Got:      {report_hash}\n"
-            f"Expected: {expected}\n"
-            f"This indicates one or more resolution components "
-            f"produce incorrect intermediate results.")
+    def test_full_consistency(self):
+        """Cross-concern validation across all subsystems."""
+        report = load_report()
+        scoring = report["scoring"]
+        assert report["active_sources"] == 3
+        assert report["ancestor_threshold"] == 3
+        assert "internal" in scoring["source_scores"], (
+            "internal source missing from scoring"
+        )
+        assert scoring["source_scores"]["internal"]["packages"] == 5
+        assert scoring["source_scores"]["community"]["packages"] == 6
+        assert scoring["source_scores"]["core"]["packages"] == 7
+        assert report["packages_resolved"] == 18

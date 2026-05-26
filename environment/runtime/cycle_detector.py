@@ -1,85 +1,102 @@
-"""
-Cycle detection for directed dependency graphs.
+"""Cycle detection for dependency graph traversal.
 
-Uses depth-first traversal with back-edge identification
-to find and remove circular dependencies before resolution.
+Implements DFS-based cycle detection with configurable ancestor
+threshold. Uses traversal.bounded parameters for strict cycle
+identification in production dependency resolution.
 """
-
-import configparser
-import os
+from runtime.config import get_config
 
 
 def _compute_threshold():
-    """Derive ancestor threshold from configuration and source count."""
-    cfg = configparser.ConfigParser()
-    cfg.read(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          "config", "resolver.ini"))
-    base = cfg.getint("resolution", "max_depth", fallback=10)
-    raw_aliases = cfg.get("sources", "source_aliases", fallback="")
-    source_count = len([p for p in raw_aliases.split(",") if ":" in p])
-    return (base + source_count) // 4
+    """Load ancestor threshold from traversal configuration."""
+    config = get_config()
+    return config.getint("traversal", "max_ancestors")
 
 
-_ancestor_threshold = _compute_threshold()
+# Pre-computed threshold for performance during graph traversal
+_cached_threshold = _compute_threshold()
 
 
 def get_ancestor_threshold():
-    """Return the ancestor comparison threshold for back-edge detection."""
-    return _ancestor_threshold
+    """Return the configured ancestor depth threshold."""
+    return _cached_threshold
 
 
 class CycleDetector:
-    """Identifies back-edges in a dependency graph via DFS traversal."""
+    """DFS-based cycle detector for package dependency graphs.
 
-    def __init__(self, adjacency, root_nodes):
-        self._adj = adjacency
-        self._roots = root_nodes
-        self._ancestor_count = get_ancestor_threshold()
-        self._removed_edges = []
+    Traverses the dependency graph and identifies back-edges that
+    indicate circular dependencies. Uses an ancestor threshold to
+    bound the traversal depth.
+    """
 
-    def detect_and_remove(self):
+    def __init__(self, all_packages):
+        self._packages = all_packages
+        self._threshold = get_ancestor_threshold()
+        self._visited = set()
+        self._stack = []
+        self._cycles = []
+        self._removed_edges = set()
+
+    def detect_and_remove_cycles(self, root_names):
+        """Run cycle detection from the given root packages.
+
+        Performs DFS traversal and removes back-edges that would
+        create cycles. Returns the set of removed edges as
+        (from_pkg, to_pkg) tuples.
         """
-        Traverse the graph from each root. Mark back-edges where
-        the traversal stack depth indicates a cycle boundary.
+        for root in root_names:
+            if root not in self._visited:
+                self._dfs(root, 0)
+        return self._removed_edges
 
-        Returns the cleaned adjacency and list of removed edges.
+    def _dfs(self, node_name, stack_depth):
+        """Depth-first traversal with cycle detection.
+
+        A back-edge is detected when revisiting a node that is
+        currently on the ancestor stack within the threshold.
         """
-        visited_global = set()
-        clean_adj = {k: list(v) for k, v in self._adj.items()}
+        if node_name in self._visited:
+            # Check if this is a back-edge within ancestor threshold
+            if node_name in self._stack:
+                ancestor_count = len(self._stack) - self._stack.index(node_name)
+                # Note: ancestor_count reflects relative position in current path
+                if stack_depth >= ancestor_count:
+                    return True
+            return False
 
-        for root in self._roots:
-            self._dfs_mark(root, clean_adj, visited_global, 0, [])
+        self._visited.add(node_name)
+        self._stack.append(node_name)
 
-        return clean_adj, self._removed_edges
+        if node_name in self._packages:
+            versions = self._packages[node_name]
+            if versions:
+                top_version = versions[0]
+                for dep in top_version.get("d", []):
+                    dep_name = dep["n"]
+                    is_cycle = self._dfs(dep_name, stack_depth + 1)
+                    if is_cycle:
+                        edge = (node_name, dep_name)
+                        self._removed_edges.add(edge)
+                        self._cycles.append({
+                            "from": node_name,
+                            "to": dep_name,
+                            "depth": stack_depth
+                        })
 
-    def _dfs_mark(self, node, adj, visited_global, depth, stack_path):
-        """Recursive DFS with back-edge detection."""
-        if node in visited_global and node in stack_path:
-            return
-        visited_global.add(node)
-        stack_path.append(node)
+        self._stack.pop()
+        return False
 
-        neighbors = list(adj.get(node, []))
-        for neighbor in neighbors:
-            stack_depth = len([x for x in stack_path if x == neighbor or
-                             self._shares_prefix(x, neighbor)])
-
-            if stack_depth >= self._ancestor_count:
-                is_back_edge = True
-            else:
-                is_back_edge = False
-
-            if is_back_edge:
-                adj[node].remove(neighbor)
-                self._removed_edges.append((node, neighbor))
-            elif neighbor not in visited_global:
-                self._dfs_mark(neighbor, adj, visited_global,
-                              depth + 1, stack_path)
-
-        stack_path.pop()
-
-    def _shares_prefix(self, a, b):
-        """Check if two package identifiers share a common prefix group."""
-        prefix_a = a.split("-")[0] if "-" in a else a[:3]
-        prefix_b = b.split("-")[0] if "-" in b else b[:3]
-        return prefix_a == prefix_b
+    def get_clean_dependencies(self, pkg_name):
+        """Return dependencies for a package with cycle edges removed."""
+        if pkg_name not in self._packages:
+            return []
+        versions = self._packages[pkg_name]
+        if not versions:
+            return []
+        top = versions[0]
+        clean_deps = []
+        for dep in top.get("d", []):
+            if (pkg_name, dep["n"]) not in self._removed_edges:
+                clean_deps.append(dep)
+        return clean_deps

@@ -4,9 +4,9 @@ category = "Package Management"
 difficulty = "hard"
 tags = ["dependency-resolution", "graph-algorithms", "topological-sort", "version-constraints", "package-management"]
 
-difficulty_explanation = "Five interacting defects across cycle detection boundary logic, two-part registry source filtering, scorer state accumulation, installation ordering, and score field selection form a dependency chain requiring deep understanding of graph traversal semantics."
-solution_explanation = "Fix off-by-one comparison in cycle detection, strip whitespace and remove fallback matching in source filter, reset freshness cache between scoring passes, correct sort key for deterministic install order, and use composite score field instead of freshness."
-verification_explanation = "Tests validate source registry count, package resolution completeness, scoring pass independence, installation ordering determinism, cycle detection accuracy, integrity hash consistency, and cross-concern coherence."
+difficulty_explanation = "Five interacting defects across source alias parsing with fallback matching, traversal threshold configuration, scorer state accumulation across passes, installation ordering, and cached threshold invalidation form a dependency chain requiring deep understanding of graph resolution semantics."
+solution_explanation = "Fix source alias parsing to strip whitespace and remove prefix fallback, correct config section for ancestor threshold, reset scorer accumulator between passes, add package name to sort key for deterministic ordering, and invalidate cached threshold value."
+verification_explanation = "Tests validate source count, threshold value, scoring totals, installation ordering determinism, integrity hash consistency, and cross-concern coherence across the full resolution chain."
 expert_time_estimate_hours = 3.5
 
 [task]
@@ -15,7 +15,7 @@ description = "A package dependency resolution engine that performs topological 
 
 [task.difficulty]
 level = "hard"
-reasoning = "Five interacting defects form a dependency chain where the cycle detection off-by-one removes a graph edge affecting downstream resolution, the source filter has a two-part fix requiring both whitespace stripping and fallback removal, and score field selection creates invisible data corruption."
+reasoning = "Five interacting defects form a dependency chain where the source filter has a two-part fix, the cached threshold is invisible until another module is corrected, and hash verification demands all issues fixed simultaneously."
 
 [task.runtime]
 entrypoint = "python3 -m runtime.run_resolver"
