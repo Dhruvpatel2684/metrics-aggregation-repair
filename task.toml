@@ -1,24 +1,37 @@
-[metadata]
 author_name = "Dhruvkumar Patel"
 author_email = "dhruvpatel2284@gmail.com"
 category = "Graph Algorithms"
 difficulty = "hard"
 tags = ["dependency-resolution", "topological-sort", "graph-traversal", "level-assignment", "constraint-propagation"]
 
+difficulty_explanation = "Five interacting logic defects across level boundary detection, two-part source registry filtering, phase-based visit counter accumulation, sort key ordering, and cached boundary invalidation create a dependency chain requiring deep understanding of topological graph traversal semantics."
+solution_explanation = "Fix off-by-one comparison in level boundary assignment, strip whitespace and remove prefix fallback in source registry, reset visit counters between resolution phases, add package name to sort key for deterministic ordering, and correct config section with cache bypass for level boundary."
+verification_explanation = "Tests validate level distribution counts, source participation presence, phase visit count consistency, topological ordering determinism, integrity hash consistency, and cross-concern coherence requiring all defects fixed simultaneously."
+expert_time_estimate_hours = 3.5
+
 [task]
 name = "depgraph-topo-repair"
-description = "Fix a dependency graph topological resolution system that produces incorrect level assignments, missing source registrations, inflated visit counts, and unstable sort ordering."
+description = "A dependency graph topological resolution engine that assigns packages to levels via chain-length boundary detection, resolves constraints through two-phase traversal, and produces deterministic installation manifests with quality scoring."
 
-[environment]
-dockerfile = "environment/Dockerfile"
-runtime_dir = "environment/runtime"
+[task.difficulty]
+level = "hard"
+reasoning = "Five interacting logic defects form a dependency chain where the level boundary off-by-one shifts packages between levels affecting downstream computations, the source filter requires a two-part fix, and cached values create invisible dependencies between modules."
 
-[testing]
-test_script = "tests/test.sh"
-test_file = "tests/test_resolver.py"
-total_tests = 10
-passing_without_fix = 4
+[task.runtime]
+entrypoint = "python3 -m runtime.run_resolver"
+language = "python"
+dependencies = "stdlib-only"
 
-[solution]
-solve_script = "solution/solve.sh"
-repair_file = "solution/repair_resolver.py"
+[task.validator]
+command = "bash tests/test.sh"
+description = "Runs the resolver and validates output correctness"
+
+[task.repair]
+command = "bash solution/solve.sh"
+description = "Patches the five interacting defects and re-runs the system"
+
+[task.resources]
+timeout = 300
+cpu = 2
+memory = "2GB"
+disk = "1GB"
