@@ -129,10 +129,10 @@ class TestHardIntegrity:
             assert curr_key <= nxt_key, (
                 f"Installation order violation at position {i}: "
                 f"{curr['name']}@{curr['version']} (depth={curr['depth']}) "
-                f"must come before "
+                f"followed by "
                 f"{nxt['name']}@{nxt['version']} (depth={nxt['depth']}). "
-                f"Correct ordering uses descending depth, then ascending "
-                f"package name, then ascending version as tiebreakers.")
+                f"Deterministic ordering requires depth-descending primary "
+                f"key with stable tiebreakers for same-depth entries.")
 
     def test_cycle_detection_accuracy(self):
         """No legitimate dependency edges should be flagged as cycles."""
