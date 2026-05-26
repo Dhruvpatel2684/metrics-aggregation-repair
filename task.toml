@@ -1,37 +1,24 @@
+[metadata]
 author_name = "Dhruvkumar Patel"
 author_email = "dhruvpatel2284@gmail.com"
-category = "Package Management"
+category = "Graph Algorithms"
 difficulty = "hard"
-tags = ["dependency-resolution", "graph-algorithms", "topological-sort", "version-constraints", "package-management"]
-
-difficulty_explanation = "Five interacting defects across source alias parsing with fallback matching, traversal threshold configuration, scorer state accumulation across passes, installation ordering, and cached threshold invalidation form a dependency chain requiring deep understanding of graph resolution semantics."
-solution_explanation = "Fix source alias parsing to strip whitespace and remove prefix fallback, correct config section for ancestor threshold, reset scorer accumulator between passes, add package name to sort key for deterministic ordering, and invalidate cached threshold value."
-verification_explanation = "Tests validate source count, threshold value, scoring totals, installation ordering determinism, integrity hash consistency, and cross-concern coherence across the full resolution chain."
-expert_time_estimate_hours = 3.5
+tags = ["dependency-resolution", "topological-sort", "graph-traversal", "level-assignment", "constraint-propagation"]
 
 [task]
-name = "dep-graph-repair"
-description = "A package dependency resolution engine that performs topological graph traversal with version constraint satisfaction, cycle detection, and multi-registry source filtering to compute deterministic installation plans."
+name = "depgraph-topo-repair"
+description = "Fix a dependency graph topological resolution system that produces incorrect level assignments, missing source registrations, inflated visit counts, and unstable sort ordering."
 
-[task.difficulty]
-level = "hard"
-reasoning = "Five interacting defects form a dependency chain where the source filter has a two-part fix, the cached threshold is invisible until another module is corrected, and hash verification demands all issues fixed simultaneously."
+[environment]
+dockerfile = "environment/Dockerfile"
+runtime_dir = "environment/runtime"
 
-[task.runtime]
-entrypoint = "python3 -m runtime.run_resolver"
-language = "python"
-dependencies = "stdlib-only"
+[testing]
+test_script = "tests/test.sh"
+test_file = "tests/test_resolver.py"
+total_tests = 10
+passing_without_fix = 4
 
-[task.validator]
-command = "bash tests/test.sh"
-description = "Runs the resolver and validates output correctness"
-
-[task.repair]
-command = "bash solution/solve.sh"
-description = "Patches the five interacting defects and re-runs the system"
-
-[task.resources]
-timeout = 300
-cpu = 2
-memory = "2GB"
-disk = "1GB"
+[solution]
+solve_script = "solution/solve.sh"
+repair_file = "solution/repair_resolver.py"

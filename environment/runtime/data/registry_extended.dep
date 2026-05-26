@@ -1,0 +1,5 @@
+{"n": "ext-monitor", "v": "1.0.0", "d": [{"n": "contrib-cache", "c": ">=1.0.0"}], "s": "extended", "g": "ops"}
+{"n": "ext-deploy", "v": "2.1.0", "d": [{"n": "contrib-cache", "c": ">=1.0.0"}], "s": "extended", "g": "ops"}
+{"n": "ext-scale", "v": "1.5.0", "d": [{"n": "contrib-data", "c": ">=1.0.0"}], "s": "extended", "g": "infra"}
+{"n": "ext-cluster", "v": "3.0.0", "d": [{"n": "ext-monitor", "c": ">=1.0.0"}], "s": "extended", "g": "infra"}
+{"n": "ext-mesh", "v": "0.8.0", "d": [{"n": "ext-scale", "c": ">=1.0.0"}], "s": "extended", "g": "infra"}

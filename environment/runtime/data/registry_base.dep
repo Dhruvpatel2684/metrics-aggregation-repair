@@ -1,0 +1,6 @@
+{"n": "core-utils", "v": "1.0.0", "d": [], "s": "base", "g": "foundation"}
+{"n": "core-io", "v": "1.2.0", "d": [], "s": "base", "g": "foundation"}
+{"n": "core-math", "v": "2.0.1", "d": [], "s": "base", "g": "foundation"}
+{"n": "base-logging", "v": "1.1.0", "d": [{"n": "core-utils", "c": ">=1.0.0"}], "s": "base", "g": "services"}
+{"n": "base-config", "v": "1.3.0", "d": [{"n": "core-io", "c": ">=1.0.0"}], "s": "base", "g": "services"}
+{"n": "base-events", "v": "0.9.0", "d": [{"n": "base-logging", "c": ">=1.0.0"}], "s": "base", "g": "services"}

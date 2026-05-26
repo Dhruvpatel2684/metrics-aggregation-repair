@@ -1,0 +1,6 @@
+{"n": "contrib-net", "v": "2.1.0", "d": [{"n": "base-events", "c": ">=0.8.0"}], "s": "contrib", "g": "network"}
+{"n": "contrib-http", "v": "1.4.0", "d": [{"n": "contrib-net", "c": ">=2.0.0"}], "s": "contrib", "g": "network"}
+{"n": "contrib-auth", "v": "3.0.0", "d": [{"n": "contrib-http", "c": ">=1.0.0"}], "s": "contrib", "g": "security"}
+{"n": "contrib-cache", "v": "1.2.0", "d": [{"n": "contrib-auth", "c": ">=2.0.0"}], "s": "contrib", "g": "storage"}
+{"n": "contrib-data", "v": "2.0.0", "d": [{"n": "contrib-cache", "c": ">=1.0.0"}], "s": "contrib", "g": "storage"}
+{"n": "contrib-rpc", "v": "1.0.0", "d": [{"n": "contrib-cache", "c": ">=1.0.0"}], "s": "contrib", "g": "network"}

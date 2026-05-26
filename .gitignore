@@ -1,5 +1,5 @@
 __pycache__/
 *.pyc
-.pytest_cache/
+*.pyo
 environment/runtime/output/*.json
-/logs/
+.agents/

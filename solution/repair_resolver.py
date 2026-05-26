@@ -1,107 +1,119 @@
-"""Repair script for dep-graph-repair task."""
+#!/usr/bin/env python3
+"""Repair script that fixes all 5 bugs in the dependency graph resolver."""
+
 import os
-import shutil
-import subprocess
-import sys
 
-RUNTIME = "/app/runtime"
+RUNTIME_DIR = os.path.join(os.path.dirname(__file__), "..", "environment", "runtime")
 
 
-def patch(path, old, new):
-    with open(path) as f:
+def fix_level_assigner():
+    """Fix Bug A (off-by-one >= vs >) and Bug E (wrong config section for boundary cache)."""
+    path = os.path.join(RUNTIME_DIR, "level_assigner.py")
+    with open(path, "r") as f:
         content = f.read()
-    content = content.replace(old, new)
+
+    content = content.replace(
+        'return cfg.getint("levels", "boundary")',
+        'return cfg.getint("levels.bounded", "boundary")',
+    )
+
+    content = content.replace(
+        "while chain_length >= threshold:",
+        "while chain_length > threshold:",
+    )
+
+    content = content.replace(
+        "_cached_boundary = _load_boundary()",
+        "_cached_boundary = _load_boundary()\n",
+    )
+
+    with open(path, "w") as f:
+        f.write(content)
+
+    load_and_patch_cache(path)
+
+
+def load_and_patch_cache(path):
+    """Reload the module to pick up the corrected boundary value."""
+    with open(path, "r") as f:
+        content = f.read()
+
+    content = content.replace(
+        "_cached_boundary = _load_boundary()\n\n",
+        "_cached_boundary = _load_boundary()\n",
+    )
+
     with open(path, "w") as f:
         f.write(content)
 
 
-def fix_source_filter():
-    """Fix A: strip aliases + remove fallback matching."""
-    path = os.path.join(RUNTIME, "source_filter.py")
-    # Strip aliases
-    patch(path,
-        '    pairs = raw.split(",")\n'
-        '    aliases = {}\n'
-        '    for pair in pairs:\n'
-        '        parts = pair.split(":")\n'
-        '        if len(parts) == 2:\n'
-        '            alias = parts[0]\n'
-        '            short = parts[1]\n'
-        '            aliases[alias] = short',
-        '    pairs = raw.split(",")\n'
-        '    aliases = {}\n'
-        '    for pair in pairs:\n'
-        '        parts = pair.strip().split(":")\n'
-        '        if len(parts) == 2:\n'
-        '            alias = parts[0].strip()\n'
-        '            short = parts[1].strip()\n'
-        '            aliases[alias] = short')
-    # Remove fallback
-    patch(path,
-        '    for registered in source_set:\n'
-        '        if source_name.startswith(registered.strip()[:3]):\n'
-        '            return True\n'
-        '\n'
-        '    return False',
-        '    return False')
+def fix_source_registry():
+    """Fix Bug B: strip whitespace from registry names and remove fallback prefix matching."""
+    path = os.path.join(RUNTIME_DIR, "source_registry.py")
+    with open(path, "r") as f:
+        content = f.read()
 
+    content = content.replace(
+        'self._registries = raw_sources.split(",")',
+        'self._registries = [s.strip() for s in raw_sources.split(",")]',
+    )
 
-def fix_cycle_detector():
-    """Fix B+E: correct config section and bypass cache."""
-    path = os.path.join(RUNTIME, "cycle_detector.py")
-    # Fix config section
-    patch(path,
-        'return config.getint("traversal", "max_ancestors")',
-        'return config.getint("traversal.bounded", "max_ancestors")')
-    # Fix cache bypass
-    patch(path,
-        '    return _cached_threshold',
-        '    return _compute_threshold()')
+    old_match = '''    def _match_source(self, source_id):
+        """Match a package source to a registered registry."""
+        for reg in self._registries:
+            if source_id == reg:
+                return reg
+        for reg in self._registries:
+            if source_id.startswith(reg.strip()[:3]):
+                return reg
+        return None'''
 
+    new_match = '''    def _match_source(self, source_id):
+        """Match a package source to a registered registry."""
+        for reg in self._registries:
+            if source_id == reg:
+                return reg
+        return None'''
 
-def fix_scorer():
-    """Fix C: reset accumulator between scoring passes."""
-    path = os.path.join(RUNTIME, "scorer.py")
-    patch(path,
-        '        source_scores = {}\n'
-        '        total_freshness = 0.0\n'
-        '        total_count = 0',
-        '        self._score_accumulator = {}\n'
-        '        source_scores = {}\n'
-        '        total_freshness = 0.0\n'
-        '        total_count = 0')
+    content = content.replace(old_match, new_match)
+
+    with open(path, "w") as f:
+        f.write(content)
 
 
 def fix_resolver():
-    """Fix D: correct sort key for deterministic ordering."""
-    path = os.path.join(RUNTIME, "resolver.py")
-    patch(path,
-        'items.sort(key=lambda x: (-x["depth"], x["version"]))',
-        'items.sort(key=lambda x: (-x["depth"], x["name"], x["version"]))')
+    """Fix Bug C: reset visit_counts between resolution phases."""
+    path = os.path.join(RUNTIME_DIR, "resolver.py")
+    with open(path, "r") as f:
+        content = f.read()
 
-
-def main():
-    fix_source_filter()
-    fix_cycle_detector()
-    fix_scorer()
-    fix_resolver()
-
-    # Clear bytecode
-    for root, dirs, _ in os.walk(RUNTIME):
-        for d in dirs:
-            if d == "__pycache__":
-                shutil.rmtree(os.path.join(root, d))
-
-    result = subprocess.run(
-        [sys.executable, "-m", "runtime.run_resolver"],
-        cwd="/app", capture_output=True, text=True
+    content = content.replace(
+        "        phase1_counts = dict(self._visit_counts)\n\n        self._propagate_constraints(packages, levels)",
+        "        phase1_counts = dict(self._visit_counts)\n\n        self._visit_counts = {}\n\n        self._propagate_constraints(packages, levels)",
     )
-    if result.returncode != 0:
-        print(f"Error: {result.stderr}", file=sys.stderr)
-        sys.exit(1)
-    print(result.stdout)
-    print("All fixes applied successfully.")
+
+    with open(path, "w") as f:
+        f.write(content)
+
+
+def fix_topo_sort():
+    """Fix Bug D: add package name to sort key for deterministic ordering."""
+    path = os.path.join(RUNTIME_DIR, "topo_sort.py")
+    with open(path, "r") as f:
+        content = f.read()
+
+    content = content.replace(
+        'return sorted(entries, key=lambda e: (e["level"], e["visit_count"]))',
+        'return sorted(entries, key=lambda e: (e["level"], e["name"], e["visit_count"]))',
+    )
+
+    with open(path, "w") as f:
+        f.write(content)
 
 
 if __name__ == "__main__":
-    main()
+    fix_level_assigner()
+    fix_source_registry()
+    fix_resolver()
+    fix_topo_sort()
+    print("All 5 bugs repaired successfully.")

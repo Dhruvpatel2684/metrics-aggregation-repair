@@ -1,86 +1,101 @@
-"""Dependency graph resolver - main orchestrator."""
+#!/usr/bin/env python3
+"""Main entry point for the dependency graph resolver."""
+
+import configparser
 import json
 import os
+import glob as glob_mod
 
-from runtime.config import get_config
-from runtime.source_filter import get_active_sources, get_source_count, filter_packages
-from runtime.cycle_detector import get_ancestor_threshold
-from runtime.resolver import resolve
-from runtime.scorer import ResolutionScorer
-from runtime.hasher import hash_report, hash_manifest
+from source_registry import SourceRegistry
+from level_assigner import LevelAssigner
+from resolver import Resolver
+from topo_sort import topological_sort
+from hasher import compute_manifest_hash
+
+
+def load_config():
+    """Load resolver configuration from graph.ini."""
+    config_path = os.path.join(os.path.dirname(__file__), "config", "graph.ini")
+    cfg = configparser.ConfigParser()
+    cfg.read(config_path)
+    return cfg
 
 
 def load_packages(data_dir):
-    """Load all .dep registry files (JSONL format)."""
-    packages = {}
-    for fname in sorted(os.listdir(data_dir)):
-        if not fname.endswith(".dep"):
-            continue
-        with open(os.path.join(data_dir, fname)) as f:
+    """Load all packages from .dep JSONL files in the data directory."""
+    packages = []
+    dep_files = sorted(glob_mod.glob(os.path.join(data_dir, "*.dep")))
+    for dep_file in dep_files:
+        with open(dep_file, "r") as f:
             for line in f:
                 line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
-                entry = json.loads(line)
-                name = entry["n"]
-                if name not in packages:
-                    packages[name] = []
-                packages[name].append(entry)
-    # Sort each package's versions by priority (p field, lower = newer)
-    for name in packages:
-        packages[name].sort(key=lambda e: e.get("p", 99))
+                if line:
+                    packages.append(json.loads(line))
     return packages
 
 
-def main():
-    config = get_config()
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+def run():
+    """Execute the full resolution sequence."""
+    base_dir = os.path.dirname(__file__)
     data_dir = os.path.join(base_dir, "data")
     output_dir = os.path.join(base_dir, "output")
     os.makedirs(output_dir, exist_ok=True)
 
+    config = load_config()
+    engine_id = config.get("engine", "id")
+
     all_packages = load_packages(data_dir)
-    active_sources = get_active_sources()
-    filtered = filter_packages(all_packages)
 
-    root_reqs = [("platform", ">=5.9.0")]
-    result = resolve(root_reqs, filtered)
+    registry = SourceRegistry()
+    filtered_packages = registry.filter_packages(all_packages)
 
-    resolved = result["resolved"]
-    depth_map = result["depth_map"]
-    install_order = result["install_order"]
+    assigner = LevelAssigner()
+    levels = assigner.assign_levels(filtered_packages)
 
-    scorer = ResolutionScorer(filtered)
-    # Validation pass to check for source connectivity
-    scorer.score(resolved, depth_map, active_sources)
-    # Final scoring pass
-    scoring = scorer.score(resolved, depth_map, active_sources)
+    resolver = Resolver()
+    entries = resolver.resolve(filtered_packages, levels)
+
+    sorted_entries = topological_sort(entries)
+
+    manifest_hash = compute_manifest_hash(sorted_entries)
+
+    level_distribution = {}
+    for entry in sorted_entries:
+        key = f"L{entry['level']}"
+        level_distribution[key] = level_distribution.get(key, 0) + 1
+
+    participating = registry.get_participating_sources(filtered_packages)
 
     report = {
-        "engine_id": config.get("engine", "engine_id"),
-        "strategy": config.get("engine", "strategy"),
-        "ancestor_threshold": get_ancestor_threshold(),
-        "active_sources": get_source_count(),
-        "packages_available": sum(len(v) for v in filtered.values()),
-        "packages_resolved": len(resolved),
-        "install_order_length": len(install_order),
-        "scoring": scoring,
+        "engine_id": engine_id,
+        "levels": level_distribution,
+        "level_distribution": level_distribution,
+        "packages_resolved": len(sorted_entries),
+        "source_participation": participating,
+        "resolution": {
+            "phase_consistency": resolver.phase_consistency,
+            "phases_run": 2,
+        },
+        "integrity_hash": manifest_hash,
     }
-    report["integrity_hash"] = hash_report(report)
 
     manifest = {
-        "manifest_hash": hash_manifest(install_order),
-        "install_order": install_order,
+        "entries": sorted_entries,
+        "metadata": {
+            "total": len(sorted_entries),
+            "hash": manifest_hash,
+        },
     }
 
-    with open(os.path.join(output_dir, "resolution_report.json"), "w") as f:
-        json.dump(report, f, indent=2)
-    with open(os.path.join(output_dir, "install_manifest.json"), "w") as f:
-        json.dump(manifest, f, indent=2)
+    report_path = os.path.join(output_dir, "report.json")
+    manifest_path = os.path.join(output_dir, "manifest.json")
 
-    print(f"Resolution complete: {len(resolved)} packages")
-    print(f"Install order: {len(install_order)} packages")
+    with open(report_path, "w") as f:
+        json.dump(report, f, indent=2)
+
+    with open(manifest_path, "w") as f:
+        json.dump(manifest, f, indent=2)
 
 
 if __name__ == "__main__":
-    main()
+    run()
